@@ -1,0 +1,23 @@
+{
+  "name": "@codeguard/worker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/main.ts",
+    "lint": "eslint src",
+    "start": "node dist/main.js",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@codeguard/config": "workspace:*",
+    "bullmq": "5.63.0",
+    "ioredis": "5.8.2",
+    "pino": "10.1.0",
+    "zod": "4.1.12"
+  },
+  "devDependencies": {
+    "tsx": "4.20.6"
+  }
+}

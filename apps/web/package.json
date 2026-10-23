@@ -1,0 +1,27 @@
+{
+  "name": "@codeguard/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "next build --webpack",
+    "dev": "next dev",
+    "lint": "eslint src",
+    "start": "next start",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@codeguard/contracts": "workspace:*",
+    "@codeguard/ui": "workspace:*",
+    "next": "16.0.1",
+    "next-intl": "4.3.12",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "tailwindcss": "4.1.16",
+    "@tailwindcss/postcss": "4.1.16"
+  }
+}

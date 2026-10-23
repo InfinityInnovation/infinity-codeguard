@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "allowJs": false,
+    "declaration": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ES2022"
+  }
+}

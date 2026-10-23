@@ -1,0 +1,27 @@
+{
+  "name": "@codeguard/ui",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./src/index.tsx",
+  "exports": {
+    ".": {
+      "types": "./src/index.tsx",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@radix-ui/react-slot": "1.2.3",
+    "clsx": "2.1.1",
+    "react": "19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.2"
+  }
+}

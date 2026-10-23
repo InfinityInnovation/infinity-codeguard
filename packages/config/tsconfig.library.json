@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "module": "CommonJS", "moduleResolution": "Node", "composite": false },
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}

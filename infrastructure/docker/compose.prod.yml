@@ -1,0 +1,16 @@
+services:
+  api:
+    deploy: { resources: { limits: { cpus: '2', memory: 2G }, reservations: { memory: 256M } } }
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+  worker:
+    deploy: { resources: { limits: { cpus: '4', memory: 4G }, reservations: { memory: 512M } } }
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+  web:
+    deploy: { resources: { limits: { cpus: '1', memory: 1G }, reservations: { memory: 128M } } }
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]

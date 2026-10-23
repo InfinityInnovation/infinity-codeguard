@@ -1,0 +1,27 @@
+{
+  "name": "@codeguard/database",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "prisma generate && tsc -p tsconfig.json",
+    "generate": "prisma generate",
+    "lint": "eslint src",
+    "migrate:deploy": "prisma migrate deploy",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "prisma generate && tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@prisma/client": "6.18.0"
+  },
+  "devDependencies": {
+    "prisma": "6.18.0"
+  }
+}

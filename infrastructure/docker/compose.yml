@@ -1,0 +1,126 @@
+name: infinity-codeguard
+services:
+  postgres:
+    image: postgres:17.6-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    networks: [data]
+    healthcheck:
+      {
+        test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB'],
+        interval: 10s,
+        timeout: 5s,
+        retries: 5,
+      }
+    restart: unless-stopped
+  redis:
+    image: redis:8.2.2-alpine
+    command: ['redis-server', '--appendonly', 'yes', '--save', '60', '1']
+    volumes: [redis-data:/data]
+    networks: [data]
+    healthcheck: { test: ['CMD', 'redis-cli', 'ping'], interval: 10s, timeout: 5s, retries: 5 }
+    restart: unless-stopped
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    command: ['server', '/data', '--console-address', ':9001']
+    environment:
+      {
+        MINIO_ROOT_USER: '${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}',
+        MINIO_ROOT_PASSWORD: '${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}',
+      }
+    volumes: [minio-data:/data]
+    networks: [data]
+    healthcheck:
+      {
+        test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live'],
+        interval: 15s,
+        timeout: 5s,
+        retries: 5,
+      }
+    restart: unless-stopped
+  api:
+    build: { context: ../.., dockerfile: apps/api/Dockerfile }
+    environment:
+      {
+        NODE_ENV: production,
+        PORT: 4000,
+        DATABASE_URL: '${DATABASE_URL:?DATABASE_URL is required}',
+        REDIS_URL: '${REDIS_URL:?REDIS_URL is required}',
+        SESSION_SECRET: '${SESSION_SECRET:?SESSION_SECRET is required}',
+        WEB_ORIGIN: '${WEB_ORIGIN:?WEB_ORIGIN is required}',
+      }
+    networks: [edge, data]
+    depends_on: { postgres: { condition: service_healthy }, redis: { condition: service_healthy } }
+    healthcheck:
+      {
+        test: ['CMD', 'wget', '-q', '--spider', 'http://localhost:4000/api/v1/health'],
+        interval: 15s,
+        timeout: 5s,
+        retries: 5,
+      }
+    restart: unless-stopped
+  worker:
+    build: { context: ../.., dockerfile: apps/worker/Dockerfile }
+    environment:
+      {
+        NODE_ENV: production,
+        DATABASE_URL: '${DATABASE_URL:?DATABASE_URL is required}',
+        REDIS_URL: '${REDIS_URL:?REDIS_URL is required}',
+        SESSION_SECRET: '${SESSION_SECRET:?SESSION_SECRET is required}',
+        WEB_ORIGIN: '${WEB_ORIGIN:?WEB_ORIGIN is required}',
+        WORKER_CONCURRENCY: 2,
+      }
+    networks: [data]
+    depends_on: { postgres: { condition: service_healthy }, redis: { condition: service_healthy } }
+    restart: unless-stopped
+  web:
+    build: { context: ../.., dockerfile: apps/web/Dockerfile }
+    environment: { NEXT_PUBLIC_API_URL: '${NEXT_PUBLIC_API_URL:-http://localhost:4000/api/v1}' }
+    networks: [edge]
+    depends_on: { api: { condition: service_healthy } }
+    restart: unless-stopped
+  traefik:
+    image: traefik:v3.5.3
+    command:
+      [
+        '--providers.file.filename=/etc/traefik/dynamic.yml',
+        '--entrypoints.web.address=:80',
+        '--api.dashboard=false',
+        '--ping=true',
+      ]
+    ports: ['80:80']
+    volumes: ['./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro']
+    networks: [edge]
+    healthcheck:
+      { test: ['CMD', 'traefik', 'healthcheck', '--ping'], interval: 15s, timeout: 5s, retries: 5 }
+    restart: unless-stopped
+  prometheus:
+    image: prom/prometheus:v3.7.1
+    command: ['--config.file=/etc/prometheus/prometheus.yml', '--storage.tsdb.path=/prometheus']
+    volumes:
+      [
+        './monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro',
+        'prometheus-data:/prometheus',
+      ]
+    networks: [monitoring, edge]
+    restart: unless-stopped
+  grafana:
+    image: grafana/grafana:12.2.0
+    environment:
+      {
+        GF_SECURITY_ADMIN_PASSWORD: '${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}',
+        GF_USERS_ALLOW_SIGN_UP: 'false',
+      }
+    volumes: [grafana-data:/var/lib/grafana]
+    networks: [monitoring]
+    depends_on: [prometheus]
+    restart: unless-stopped
+networks:
+  edge: {}
+  data: { internal: true }
+  monitoring: { internal: true }
+volumes:
+  { postgres-data: {}, redis-data: {}, minio-data: {}, prometheus-data: {}, grafana-data: {} }

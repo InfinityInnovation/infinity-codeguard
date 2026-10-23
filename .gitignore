@@ -1,0 +1,10 @@
+node_modules/
+.next/
+dist/
+coverage/
+.env
+.env.local
+*.log
+.DS_Store
+packages/database/src/generated/
+.pnpm-store/

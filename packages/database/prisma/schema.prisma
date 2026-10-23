@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MembershipRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum SessionState {
+  ACTIVE
+  REVOKED
+}
+
+model User {
+  id           String       @id @default(uuid()) @db.Uuid
+  email        String       @unique @db.VarChar(254)
+  displayName  String       @db.VarChar(100)
+  passwordHash String
+  createdAt    DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime     @updatedAt @db.Timestamptz(6)
+  memberships  Membership[]
+  sessions     Session[]
+  auditEvents  AuditEvent[] @relation("AuditActor")
+}
+
+model Organization {
+  id           String       @id @default(uuid()) @db.Uuid
+  name         String       @db.VarChar(100)
+  slug         String       @unique @db.VarChar(64)
+  createdAt    DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime     @updatedAt @db.Timestamptz(6)
+  memberships  Membership[]
+  projects     Project[]
+  auditEvents  AuditEvent[]
+}
+
+model Membership {
+  id             String         @id @default(uuid()) @db.Uuid
+  userId         String         @db.Uuid
+  organizationId String         @db.Uuid
+  role           MembershipRole @default(MEMBER)
+  createdAt      DateTime       @default(now()) @db.Timestamptz(6)
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId, role])
+}
+
+model Session {
+  id        String       @id @default(uuid()) @db.Uuid
+  userId    String       @db.Uuid
+  digest    String       @unique @db.Char(64)
+  state     SessionState @default(ACTIVE)
+  expiresAt DateTime     @db.Timestamptz(6)
+  createdAt DateTime     @default(now()) @db.Timestamptz(6)
+  revokedAt DateTime?    @db.Timestamptz(6)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, state])
+  @@index([expiresAt])
+}
+
+model Project {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  name           String       @db.VarChar(120)
+  slug           String       @db.VarChar(64)
+  createdAt      DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime     @updatedAt @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, createdAt])
+}
+
+model AuditEvent {
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String?       @db.Uuid
+  actorId        String?       @db.Uuid
+  action         String        @db.VarChar(120)
+  targetType     String        @db.VarChar(80)
+  targetId       String?       @db.VarChar(120)
+  correlationId  String        @db.VarChar(100)
+  metadata       Json?
+  createdAt      DateTime      @default(now()) @db.Timestamptz(6)
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  actor          User?         @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([actorId, createdAt])
+}

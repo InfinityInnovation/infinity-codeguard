@@ -1,0 +1,7 @@
+http:
+  routers:
+    api: { rule: 'PathPrefix(`/api`)', service: api }
+    web: { rule: 'PathPrefix(`/`)', service: web }
+  services:
+    api: { loadBalancer: { servers: [{ url: 'http://api:4000' }] } }
+    web: { loadBalancer: { servers: [{ url: 'http://web:3000' }] } }
