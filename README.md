@@ -11,7 +11,10 @@ cp .env.example .env
 # Replace every placeholder secret in .env
 pnpm install
 pnpm db:generate
-docker compose --env-file .env -f infrastructure/docker/compose.yml -f infrastructure/docker/compose.dev.yml up --build
+docker compose --env-file .env -f infrastructure/docker/compose.yml -f infrastructure/docker/compose.dev.yml up -d postgres redis minio
+docker compose --env-file .env -f infrastructure/docker/compose.yml -f infrastructure/docker/compose.dev.yml build api worker web
+docker compose --env-file .env -f infrastructure/docker/compose.yml -f infrastructure/docker/compose.dev.yml run --rm --entrypoint packages/database/node_modules/.bin/prisma api migrate deploy --schema packages/database/prisma/schema.prisma
+docker compose --env-file .env -f infrastructure/docker/compose.yml -f infrastructure/docker/compose.dev.yml up -d
 ```
 
 Web: <http://localhost:3000>. API health: <http://localhost:4000/api/v1/health>. OpenAPI: <http://localhost:4000/api/docs>.
@@ -31,6 +34,6 @@ See [architecture](docs/architecture/overview.md), [security model](docs/securit
 
 ## Status
 
-Implemented: pnpm/Turborepo, Next.js shell, NestJS API health/auth foundation, Prisma schema and migration, organization membership guard service, BullMQ job validation/fail-closed worker, and Compose services. Not implemented: repository integrations, scanner adapters, findings, policies, MFA, SSO, full RBAC, analysis engines, reports, and AI features.
+Implemented: pnpm/Turborepo, Next.js shell, NestJS API health/auth foundation, validated and revocable sessions, same-origin protection, authentication audit events, tenant-derived organization listing, role-protected project creation and listing, Prisma schema and migration, BullMQ job validation/fail-closed worker, and Compose services. Not implemented: repository integrations, scanner adapters, findings, policies, MFA, SSO, fine-grained project permissions, analysis engines, reports, and AI features.
 
 Licensed under Apache-2.0. Third-party components retain their own licenses.

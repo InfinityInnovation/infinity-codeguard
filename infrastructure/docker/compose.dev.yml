@@ -1,8 +1,9 @@
 services:
-  postgres: { ports: ['127.0.0.1:5432:5432'] }
-  redis: { ports: ['127.0.0.1:6379:6379'] }
-  minio: { ports: ['127.0.0.1:9000:9000', '127.0.0.1:9001:9001'] }
+  postgres: { ports: ['127.0.0.1:5433:5432'], networks: [data, edge] }
+  redis: { ports: ['127.0.0.1:6380:6379'], networks: [data, edge] }
+  minio:
+    { ports: ['127.0.0.1:9000:9000', '127.0.0.1:9001:9001'], networks: [data, edge] }
   api: { ports: ['127.0.0.1:4000:4000'] }
   web: { ports: ['127.0.0.1:3000:3000'] }
   prometheus: { ports: ['127.0.0.1:9090:9090'] }
-  grafana: { ports: ['127.0.0.1:3001:3000'] }
+  grafana: { ports: ['127.0.0.1:3001:3000'], networks: [monitoring, edge] }

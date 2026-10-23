@@ -3,6 +3,7 @@ import type { ExceptionFilter } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { randomUUID } from 'node:crypto';
 import type { ApiErrorBody } from '@codeguard/contracts';
+import { ZodError } from 'zod';
 
 @Catch()
 export class GlobalErrorFilter implements ExceptionFilter {
@@ -14,7 +15,11 @@ export class GlobalErrorFilter implements ExceptionFilter {
         ? request.headers['x-correlation-id']
         : randomUUID();
     const status =
-      exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+      exception instanceof ZodError
+        ? HttpStatus.BAD_REQUEST
+        : exception instanceof HttpException
+          ? exception.getStatus()
+          : HttpStatus.INTERNAL_SERVER_ERROR;
     const body: ApiErrorBody = {
       error: {
         code: status === 500 ? 'INTERNAL_ERROR' : 'REQUEST_FAILED',
@@ -25,6 +30,7 @@ export class GlobalErrorFilter implements ExceptionFilter {
               ? exception.message
               : 'Request failed',
         correlationId,
+        ...(exception instanceof ZodError ? { details: exception.flatten() } : {}),
       },
     };
     response.setHeader('x-correlation-id', correlationId).status(status).json(body);

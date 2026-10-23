@@ -1,0 +1,10 @@
+{
+  "common": { "brand": "Infinity CodeGuard", "loading": "Loading…", "logout": "Sign out", "error": "Something went wrong" },
+  "auth": {
+    "loginTitle": "Secure sign in", "loginIntro": "Access your organizations and projects.", "registerTitle": "Create your workspace", "registerIntro": "Initialize an isolated organization for your team.",
+    "email": "Email address", "password": "Password", "displayName": "Display name", "organizationName": "Organization name", "organizationSlug": "Organization identifier", "login": "Sign in", "register": "Create account", "needAccount": "Need an account?", "haveAccount": "Already have an account?", "passwordHelp": "At least 12 characters.", "invalid": "Check the form fields."
+  },
+  "dashboard": {
+    "title": "Governance workspace", "intro": "Displayed data comes from the CodeGuard API.", "organizations": "Organizations", "projects": "Projects", "newProject": "New project", "projectName": "Project name", "projectSlug": "Identifier", "create": "Create", "emptyOrganizations": "No accessible organization.", "emptyProjects": "No projects in this organization.", "scansUnavailable": "Analysis remains disabled until a real adapter is validated.", "role": "Role"
+  }
+}

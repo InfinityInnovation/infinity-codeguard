@@ -13,15 +13,19 @@
   "dependencies": {
     "@codeguard/contracts": "workspace:*",
     "@codeguard/ui": "workspace:*",
+    "@hookform/resolvers": "6.0.0",
+    "@tanstack/react-query": "5.104.5",
     "next": "16.0.1",
     "next-intl": "4.3.12",
     "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react-dom": "19.2.0",
+    "react-hook-form": "7.90.0",
+    "zod": "4.1.12"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "4.1.16",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
-    "tailwindcss": "4.1.16",
-    "@tailwindcss/postcss": "4.1.16"
+    "tailwindcss": "4.1.16"
   }
 }

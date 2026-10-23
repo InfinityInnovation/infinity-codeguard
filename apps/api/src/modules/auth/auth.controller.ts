@@ -1,34 +1,45 @@
-import { Body, Controller, HttpCode, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import type { LoginInput, RegisterInput, SessionView } from '@codeguard/contracts';
+import type {
+  AuthenticatedUser,
+  LoginInput,
+  RegisterInput,
+  SessionView,
+} from '@codeguard/contracts';
 import { loginSchema, registerSchema } from '@codeguard/contracts';
 import { AuthService } from './auth.service';
-
-const COOKIE = 'cg_session';
+import { correlationId, readCookie, SESSION_COOKIE } from '../../common/request-context';
+import { SessionGuard } from '../../common/session.guard';
+import { CurrentUser } from '../../common/current-user.decorator';
+import { AuthRateLimitGuard } from '../../common/auth-rate-limit.guard';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
 
   @Post('register')
+  @UseGuards(AuthRateLimitGuard)
   async register(
     @Body() raw: unknown,
+    @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<SessionView> {
     const input: RegisterInput = registerSchema.parse(raw);
-    const result = await this.auth.register(input);
+    const result = await this.auth.register(input, correlationId(request));
     this.setCookie(response, result.token);
     return result.session;
   }
 
   @Post('login')
   @HttpCode(200)
+  @UseGuards(AuthRateLimitGuard)
   async login(
     @Body() raw: unknown,
+    @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<SessionView> {
     const input: LoginInput = loginSchema.parse(raw);
-    const result = await this.auth.login(input);
+    const result = await this.auth.login(input, correlationId(request));
     this.setCookie(response, result.token);
     return result.session;
   }
@@ -39,15 +50,19 @@ export class AuthController {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<void> {
-    const cookies = request.cookies as Record<string, unknown> | undefined;
-    const value = cookies?.[COOKIE];
-    const token = typeof value === 'string' ? value : undefined;
-    await this.auth.logout(token);
-    response.clearCookie(COOKIE, { path: '/' });
+    const token = readCookie(request, SESSION_COOKIE);
+    await this.auth.logout(token, correlationId(request));
+    response.clearCookie(SESSION_COOKIE, { path: '/' });
+  }
+
+  @Get('session')
+  @UseGuards(SessionGuard)
+  session(@CurrentUser() user: AuthenticatedUser): AuthenticatedUser {
+    return user;
   }
 
   private setCookie(response: Response, token: string): void {
-    response.cookie(COOKIE, token, {
+    response.cookie(SESSION_COOKIE, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
