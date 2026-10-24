@@ -19,6 +19,29 @@ enum SessionState {
   REVOKED
 }
 
+enum RepositoryProvider {
+  GITHUB
+  GITLAB
+  BITBUCKET
+  AZURE_DEVOPS
+  OTHER
+}
+
+enum ScanStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+enum FindingSeverity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+  INFO
+}
+
 model User {
   id           String       @id @default(uuid()) @db.Uuid
   email        String       @unique @db.VarChar(254)
@@ -39,6 +62,9 @@ model Organization {
   updatedAt    DateTime     @updatedAt @db.Timestamptz(6)
   memberships  Membership[]
   projects     Project[]
+  repositories Repository[]
+  scans        Scan[]
+  findings     Finding[]
   auditEvents  AuditEvent[]
 }
 
@@ -77,9 +103,76 @@ model Project {
   createdAt      DateTime     @default(now()) @db.Timestamptz(6)
   updatedAt      DateTime     @updatedAt @db.Timestamptz(6)
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  repositories   Repository[]
+  scans          Scan[]
+  findings       Finding[]
 
   @@unique([organizationId, slug])
   @@index([organizationId, createdAt])
+}
+
+model Repository {
+  id             String             @id @default(uuid()) @db.Uuid
+  organizationId String             @db.Uuid
+  projectId      String             @db.Uuid
+  name           String             @db.VarChar(120)
+  remoteUrl      String             @db.VarChar(500)
+  defaultBranch  String             @default("main") @db.VarChar(255)
+  provider       RepositoryProvider
+  createdAt      DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime           @updatedAt @db.Timestamptz(6)
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  project        Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  scans          Scan[]
+
+  @@unique([organizationId, remoteUrl])
+  @@index([projectId, createdAt])
+  @@index([organizationId, createdAt])
+}
+
+model Scan {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  projectId      String       @db.Uuid
+  repositoryId   String       @db.Uuid
+  status         ScanStatus   @default(QUEUED)
+  scanner        String       @default("semgrep") @db.VarChar(40)
+  commitSha      String?      @db.Char(40)
+  errorMessage   String?      @db.VarChar(500)
+  findingCount   Int          @default(0)
+  queuedAt       DateTime     @default(now()) @db.Timestamptz(6)
+  startedAt      DateTime?    @db.Timestamptz(6)
+  completedAt    DateTime?    @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  repository     Repository   @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  findings       Finding[]
+
+  @@index([organizationId, queuedAt])
+  @@index([projectId, queuedAt])
+  @@index([repositoryId, queuedAt])
+}
+
+model Finding {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @db.Uuid
+  projectId      String          @db.Uuid
+  scanId         String          @db.Uuid
+  ruleId         String          @db.VarChar(255)
+  severity       FindingSeverity
+  message        String          @db.VarChar(2000)
+  filePath       String          @db.VarChar(1000)
+  startLine      Int
+  endLine        Int
+  fingerprint    String          @db.Char(64)
+  createdAt      DateTime        @default(now()) @db.Timestamptz(6)
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  project        Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  scan           Scan            @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  @@unique([scanId, fingerprint])
+  @@index([organizationId, severity])
+  @@index([projectId, createdAt])
 }
 
 model AuditEvent {

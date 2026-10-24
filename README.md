@@ -1,6 +1,6 @@
 # Infinity CodeGuard
 
-Infinity CodeGuard is an open-source foundation for code-quality and application-security governance. This repository currently provides the platform shell, identity and organization domain foundation, asynchronous scan job contract, and self-hosted Docker topology. Scanner adapters and analysis engines are intentionally **not** represented as working yet.
+Infinity CodeGuard is an open-source foundation for code-quality and application-security governance. It includes identity and organization boundaries, projects and repositories, asynchronous Semgrep Community Edition scans, persisted findings, and a self-hosted Docker topology.
 
 ## Quick start
 
@@ -17,7 +17,7 @@ docker compose --env-file .env -f infrastructure/docker/compose.yml -f infrastru
 docker compose --env-file .env -f infrastructure/docker/compose.yml -f infrastructure/docker/compose.dev.yml up -d
 ```
 
-Web: <http://localhost:3000>. API health: <http://localhost:4000/api/v1/health>. OpenAPI: <http://localhost:4000/api/docs>.
+Web: <http://localhost:3000/fr/login> (English: <http://localhost:3000/en/login>). API health: <http://localhost:4000/api/v1/health>. OpenAPI: <http://localhost:4000/api/docs>.
 
 ## Verification
 
@@ -34,6 +34,8 @@ See [architecture](docs/architecture/overview.md), [security model](docs/securit
 
 ## Status
 
-Implemented: pnpm/Turborepo, Next.js shell, NestJS API health/auth foundation, validated and revocable sessions, same-origin protection, authentication audit events, tenant-derived organization listing, role-protected project creation and listing, Prisma schema and migration, BullMQ job validation/fail-closed worker, and Compose services. Not implemented: repository integrations, scanner adapters, findings, policies, MFA, SSO, fine-grained project permissions, analysis engines, reports, and AI features.
+Implemented: pnpm/Turborepo, bilingual Next.js authentication and governance dashboard, NestJS API, validated and revocable sessions, same-origin protection, audit events, tenant-scoped projects and repositories, BullMQ orchestration, isolated temporary Git checkouts, Semgrep CE execution, parsed findings, and Compose services. Private repository credentials, policies, MFA, SSO, reports, additional scanners, and AI features are not implemented.
+
+Only public HTTPS repositories hosted on GitHub, GitLab, Bitbucket, or Azure DevOps are accepted by the scan worker. Credentials are rejected, source checkouts are deleted after each job, and source snippets are not persisted.
 
 Licensed under Apache-2.0. Third-party components retain their own licenses.

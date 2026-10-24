@@ -46,7 +46,6 @@ export type OrganizationSummary = z.infer<typeof organizationSummarySchema>;
 
 export const createProjectSchema = z.object({
   name: z.string().trim().min(2).max(120),
-  slug: slugSchema,
 });
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 
@@ -58,6 +57,69 @@ export const projectSummarySchema = z.object({
   createdAt: z.string().datetime(),
 });
 export type ProjectSummary = z.infer<typeof projectSummarySchema>;
+
+export const repositoryProviderSchema = z.enum([
+  'GITHUB',
+  'GITLAB',
+  'BITBUCKET',
+  'AZURE_DEVOPS',
+  'OTHER',
+]);
+export const createRepositorySchema = z.object({
+  name: z.string().trim().min(2).max(120),
+  remoteUrl: z
+    .string()
+    .trim()
+    .url()
+    .max(500)
+    .refine((url) => url.startsWith('https://'), 'HTTPS is required'),
+  defaultBranch: z.string().trim().min(1).max(255),
+  provider: repositoryProviderSchema,
+});
+export type CreateRepositoryInput = z.infer<typeof createRepositorySchema>;
+
+export const repositorySummarySchema = z.object({
+  id: identifierSchema,
+  organizationId: identifierSchema,
+  projectId: identifierSchema,
+  name: z.string(),
+  remoteUrl: z.string().url(),
+  defaultBranch: z.string(),
+  provider: repositoryProviderSchema,
+  createdAt: z.string().datetime(),
+});
+export type RepositorySummary = z.infer<typeof repositorySummarySchema>;
+
+export const scanStatusSchema = z.enum(['QUEUED', 'RUNNING', 'SUCCEEDED', 'FAILED']);
+export const findingSeveritySchema = z.enum(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO']);
+export const scanSummarySchema = z.object({
+  id: identifierSchema,
+  organizationId: identifierSchema,
+  projectId: identifierSchema,
+  repositoryId: identifierSchema,
+  repositoryName: z.string(),
+  status: scanStatusSchema,
+  scanner: z.string(),
+  commitSha: z.string().nullable(),
+  findingCount: z.number().int().nonnegative(),
+  errorMessage: z.string().nullable(),
+  queuedAt: z.string().datetime(),
+  startedAt: z.string().datetime().nullable(),
+  completedAt: z.string().datetime().nullable(),
+});
+export type ScanSummary = z.infer<typeof scanSummarySchema>;
+
+export const findingSummarySchema = z.object({
+  id: identifierSchema,
+  scanId: identifierSchema,
+  ruleId: z.string(),
+  severity: findingSeveritySchema,
+  message: z.string(),
+  filePath: z.string(),
+  startLine: z.number().int().positive(),
+  endLine: z.number().int().positive(),
+});
+export type FindingSummary = z.infer<typeof findingSummarySchema>;
 
 export const apiErrorSchema = z.object({
   error: z.object({

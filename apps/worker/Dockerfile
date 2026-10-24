@@ -4,13 +4,13 @@ WORKDIR /workspace
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
 COPY apps/worker/package.json apps/worker/package.json
 COPY packages/config/package.json packages/config/package.json
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=codeguard-pnpm,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm --filter @codeguard/worker... build
-FROM node:22.21.1-alpine AS runtime
+FROM semgrep/semgrep:1.179.0 AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
-RUN addgroup -S codeguard && adduser -S codeguard -G codeguard
+RUN apk add --no-cache nodejs && addgroup -S codeguard && adduser -S codeguard -G codeguard
 COPY --from=build --chown=codeguard:codeguard /workspace/node_modules ./node_modules
 COPY --from=build --chown=codeguard:codeguard /workspace/apps/worker/node_modules ./apps/worker/node_modules
 COPY --from=build --chown=codeguard:codeguard /workspace/apps/worker/dist ./apps/worker/dist

@@ -19,6 +19,7 @@
     "@nestjs/core": "11.1.8",
     "@nestjs/platform-express": "11.1.8",
     "@nestjs/swagger": "11.2.1",
+    "bullmq": "5.63.0",
     "cookie-parser": "1.4.7",
     "helmet": "8.1.0",
     "ioredis": "5.8.2",

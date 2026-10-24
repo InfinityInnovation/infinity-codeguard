@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@codeguard/config": "workspace:*",
+    "@codeguard/database": "workspace:*",
     "bullmq": "5.63.0",
     "ioredis": "5.8.2",
     "pino": "10.1.0",

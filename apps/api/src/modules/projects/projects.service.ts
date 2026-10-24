@@ -1,6 +1,19 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { database } from '@codeguard/database';
 import type { CreateProjectInput, ProjectSummary } from '@codeguard/contracts';
+import { randomBytes } from 'node:crypto';
+
+export function generateProjectSlug(name: string, suffix = randomBytes(3).toString('hex')): string {
+  const base = name
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 55)
+    .replace(/-$/g, '');
+  return `${base || 'project'}-${suffix}`;
+}
 
 @Injectable()
 export class ProjectsService {
@@ -25,7 +38,7 @@ export class ProjectsService {
     try {
       const project = await database.$transaction(async (tx) => {
         const created = await tx.project.create({
-          data: { organizationId, name: input.name, slug: input.slug },
+          data: { organizationId, name: input.name, slug: generateProjectSlug(input.name) },
           select: { id: true, organizationId: true, name: true, slug: true, createdAt: true },
         });
         await tx.auditEvent.create({
@@ -49,7 +62,7 @@ export class ProjectsService {
         'code' in error &&
         error.code === 'P2002'
       ) {
-        throw new ConflictException('Project slug already exists in this organization');
+        throw new ConflictException('Could not allocate a unique project identifier');
       }
       throw error;
     }

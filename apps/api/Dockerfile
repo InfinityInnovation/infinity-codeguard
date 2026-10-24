@@ -7,7 +7,7 @@ COPY packages/auth/package.json packages/auth/package.json
 COPY packages/config/package.json packages/config/package.json
 COPY packages/contracts/package.json packages/contracts/package.json
 COPY packages/database/package.json packages/database/package.json
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=codeguard-pnpm,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm --filter @codeguard/api... build
 FROM node:22.21.1-alpine AS runtime

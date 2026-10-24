@@ -77,7 +77,7 @@ services:
         WEB_ORIGIN: '${WEB_ORIGIN:?WEB_ORIGIN is required}',
         WORKER_CONCURRENCY: 2,
       }
-    networks: [data]
+    networks: [data, scanner]
     depends_on: { postgres: { condition: service_healthy }, redis: { condition: service_healthy } }
     restart: unless-stopped
   web:
@@ -126,6 +126,7 @@ services:
 networks:
   edge: {}
   data: { internal: true }
+  scanner: {}
   monitoring: { internal: true }
 volumes:
   { postgres-data: {}, redis-data: {}, minio-data: {}, prometheus-data: {}, grafana-data: {} }

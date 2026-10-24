@@ -32,7 +32,7 @@ function LoginForm({ locale }: { locale: string }) {
 
   return (
     <AuthShell title={t('loginTitle')} intro={t('loginIntro')}>
-      <form onSubmit={submit} className="form-stack" noValidate>
+      <form onSubmit={(event) => void submit(event)} className="form-stack" noValidate>
         <Field label={t('email')} error={form.formState.errors.email?.message}>
           <input type="email" autoComplete="email" {...form.register('email')} />
         </Field>
@@ -70,7 +70,7 @@ function RegisterForm({ locale }: { locale: string }) {
 
   return (
     <AuthShell title={t('registerTitle')} intro={t('registerIntro')}>
-      <form onSubmit={submit} className="form-stack" noValidate>
+      <form onSubmit={(event) => void submit(event)} className="form-stack" noValidate>
         <Field label={t('displayName')} error={form.formState.errors.displayName?.message}>
           <input autoComplete="name" {...form.register('displayName')} />
         </Field>
