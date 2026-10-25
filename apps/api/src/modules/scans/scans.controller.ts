@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { z } from 'zod';
-import { identifierSchema, updateFindingStatusSchema } from '@codeguard/contracts';
+import { createScanSchema, identifierSchema, updateFindingStatusSchema } from '@codeguard/contracts';
 import type {
   AuthenticatedUser,
   FindingSource,
@@ -44,12 +44,13 @@ export class ScansController {
   ): Promise<ScanSummary> {
     const organizationId = identifierSchema.parse(rawOrganizationId);
     const projectId = identifierSchema.parse(rawProjectId);
-    const repositoryId = identifierSchema.parse((raw as { repositoryId?: unknown })?.repositoryId);
-    await this.organizations.assertMembership(user.id, organizationId);
+    const input = createScanSchema.parse(raw);
+    await this.organizations.assertRole(user.id, organizationId, 'MEMBER');
     return this.scans.create(
       organizationId,
       projectId,
-      repositoryId,
+      input.repositoryId,
+      input.profile,
       user.id,
       correlationId(request),
     );

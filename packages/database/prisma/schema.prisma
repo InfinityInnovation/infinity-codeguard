@@ -34,6 +34,13 @@ enum ScanStatus {
   FAILED
 }
 
+enum ScanProfile {
+  STANDARD
+  SECRETS
+  OWASP_TOP_TEN
+  INFRASTRUCTURE_AS_CODE
+}
+
 enum FindingSeverity {
   CRITICAL
   HIGH
@@ -151,6 +158,7 @@ model Scan {
   repositoryId   String       @db.Uuid
   status         ScanStatus   @default(QUEUED)
   scanner        String       @default("semgrep") @db.VarChar(40)
+  profile        ScanProfile  @default(STANDARD)
   commitSha      String?      @db.Char(40)
   errorMessage   String?      @db.VarChar(500)
   findingCount   Int          @default(0)

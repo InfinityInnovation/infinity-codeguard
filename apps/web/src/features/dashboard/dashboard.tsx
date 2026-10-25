@@ -46,6 +46,7 @@ export function Dashboard({ locale }: { locale: string }) {
   const [selectedProjectId, setSelectedProjectId] = useState<string>();
   const [selectedScanId, setSelectedScanId] = useState<string>();
   const [selectedFindingId, setSelectedFindingId] = useState<string>();
+  const [severityFilter, setSeverityFilter] = useState<FindingSummary['severity']>();
   const [activeView, setActiveView] = useState<WorkspaceView>('dashboard');
   const session = useQuery({
     queryKey: ['session'],
@@ -112,8 +113,11 @@ export function Dashboard({ locale }: { locale: string }) {
       ),
     enabled: Boolean(activeId && activeProjectId && selectedScan?.id && selectedScan.status === 'SUCCEEDED'),
   });
+  const findingsForSelection = severityFilter
+    ? findings.data?.filter((finding) => finding.severity === severityFilter)
+    : findings.data;
   const selectedFinding =
-    findings.data?.find(({ id }) => id === selectedFindingId) ?? findings.data?.[0];
+    findingsForSelection?.find(({ id }) => id === selectedFindingId) ?? findingsForSelection?.[0];
   const findingSource = useQuery({
     queryKey: ['finding-source', activeId, activeProjectId, selectedScan?.id, selectedFinding?.id],
     queryFn: () =>
@@ -227,6 +231,16 @@ export function Dashboard({ locale }: { locale: string }) {
             <small>{t('noAnalysisData')}</small>
           </div>
         </div>
+        <DashboardAnalytics
+          currentScans={latestRepositoryScans}
+          history={scans.data ?? []}
+          locale={locale}
+          onSeverity={(severity) => {
+            setSeverityFilter(severity);
+            setSelectedFindingId(undefined);
+            setActiveView('vulnerabilities');
+          }}
+        />
         <DashboardSummary scans={latestRepositoryScans} locale={locale} onOpenAnalyses={() => setActiveView('analyses')} />
           </>
         )}
@@ -388,6 +402,8 @@ export function Dashboard({ locale }: { locale: string }) {
             sourceLoading={findingSource.isPending && findingSource.isFetching}
             sourceError={findingSource.error?.message}
             onSelect={setSelectedFindingId}
+            severityFilter={severityFilter}
+            onSeverityFilter={setSeverityFilter}
             loading={findings.isPending && findings.isFetching}
           />
         )}
@@ -398,6 +414,7 @@ export function Dashboard({ locale }: { locale: string }) {
             projectId={activeProjectId}
             scans={scans.data ?? []}
             selectedScan={selectedScan}
+            findings={findings.data ?? []}
             onSelect={setSelectedScanId}
             locale={locale}
           />
@@ -574,6 +591,75 @@ function DashboardSummary({
   );
 }
 
+const SEVERITIES = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'] as const;
+
+function DashboardAnalytics({
+  currentScans,
+  history,
+  locale,
+  onSeverity,
+}: {
+  currentScans: ScanSummary[];
+  history: ScanSummary[];
+  locale: string;
+  onSeverity: (severity: FindingSummary['severity']) => void;
+}) {
+  const t = useTranslations('dashboard');
+  const totals = {
+    CRITICAL: currentScans.reduce((sum, scan) => sum + scan.criticalCount, 0),
+    HIGH: currentScans.reduce((sum, scan) => sum + scan.highCount, 0),
+    MEDIUM: currentScans.reduce((sum, scan) => sum + scan.mediumCount, 0),
+    LOW: currentScans.reduce((sum, scan) => sum + scan.lowCount, 0),
+    INFO: currentScans.reduce((sum, scan) => sum + scan.infoCount, 0),
+  };
+  const total = Object.values(totals).reduce((sum, value) => sum + value, 0);
+  const colors: Record<(typeof SEVERITIES)[number], string> = {
+    CRITICAL: '#d9364f', HIGH: '#f06464', MEDIUM: '#e7a845', LOW: '#4aa9dc', INFO: '#687f98',
+  };
+  let offset = 0;
+  const gradient = total
+    ? SEVERITIES.map((severity) => {
+        const start = offset;
+        offset += (totals[severity] / total) * 360;
+        return `${colors[severity]} ${start}deg ${offset}deg`;
+      }).join(', ')
+    : '#25394d 0deg 360deg';
+  const completed = history.filter((scan) => scan.status === 'SUCCEEDED').slice(0, 12).reverse();
+  const max = Math.max(1, ...completed.map((scan) => scan.findingCount));
+  const points = completed.map((scan, index) => {
+    const x = completed.length === 1 ? 150 : 12 + (index / (completed.length - 1)) * 276;
+    const y = 108 - (scan.findingCount / max) * 88;
+    return { x, y, scan };
+  });
+  const passed = currentScans.filter((scan) => scan.qualityGate === 'PASSED').length;
+  const failed = currentScans.filter((scan) => scan.qualityGate === 'FAILED').length;
+  return (
+    <div className="cg-analytics-grid">
+      <section className="cg-chart-card severity-chart">
+        <header><h2>{t('severityDistribution')}</h2><p>{t('latestResults')}</p></header>
+        <div className="cg-donut-layout">
+          <div className="cg-donut" style={{ background: `conic-gradient(${gradient})` }}><span><strong>{total}</strong><small>{t('total')}</small></span></div>
+          <div className="cg-chart-legend">{SEVERITIES.map((severity) => <button key={severity} onClick={() => onSeverity(severity)}><i style={{ background: colors[severity] }} /><span>{t(`severity.${severity}`)}</span><b>{totals[severity]}</b></button>)}</div>
+        </div>
+      </section>
+      <section className="cg-chart-card trend-chart">
+        <header><h2>{t('findingTrend')}</h2><p>{t('lastScans', { count: completed.length })}</p></header>
+        <svg viewBox="0 0 300 125" role="img" aria-label={t('findingTrend')}>
+          <path className="grid-line" d="M12 20H288M12 64H288M12 108H288" />
+          {points.length > 1 && <polyline points={points.map(({ x, y }) => `${x},${y}`).join(' ')} />}
+          {points.map(({ x, y, scan }) => <circle key={scan.id} cx={x} cy={y} r="3.5"><title>{`${scan.findingCount} — ${new Intl.DateTimeFormat(locale).format(new Date(scan.queuedAt))}`}</title></circle>)}
+        </svg>
+        <div className="cg-trend-summary"><span><b>{completed.at(-1)?.findingCount ?? 0}</b>{t('latest')}</span><span><b>{max}</b>{t('maximum')}</span></div>
+      </section>
+      <section className="cg-chart-card gate-chart">
+        <header><h2>{t('qualityGate')}</h2><p>{t('latestResults')}</p></header>
+        <div className="cg-gate-visual"><strong>{passed}/{currentScans.length}</strong><span>{t('gatePassed')}</span><div><i style={{ width: `${currentScans.length ? (passed / currentScans.length) * 100 : 0}%` }} /></div></div>
+        <dl><div><dt className="passed" /> <span>{t('gate.PASSED')}</span><b>{passed}</b></div><div><dt className="failed" /> <span>{t('gate.FAILED')}</span><b>{failed}</b></div></dl>
+      </section>
+    </div>
+  );
+}
+
 function VulnerabilitiesPanel({
   organizationId,
   projectId,
@@ -584,6 +670,8 @@ function VulnerabilitiesPanel({
   sourceLoading,
   sourceError,
   onSelect,
+  severityFilter,
+  onSeverityFilter,
   loading,
 }: {
   organizationId?: string;
@@ -595,9 +683,14 @@ function VulnerabilitiesPanel({
   sourceLoading: boolean;
   sourceError?: string;
   onSelect: (id: string) => void;
+  severityFilter?: FindingSummary['severity'];
+  onSeverityFilter: (severity?: FindingSummary['severity']) => void;
   loading: boolean;
 }) {
   const t = useTranslations('dashboard');
+  const visibleFindings = severityFilter
+    ? findings.filter((finding) => finding.severity === severityFilter)
+    : findings;
   if (loading) return <div className="cg-vulnerabilities-empty">{t('loadingFindings')}</div>;
   if (!selectedScan) return <div className="cg-vulnerabilities-empty">{t('noAnalysisData')}</div>;
   return (
@@ -606,10 +699,14 @@ function VulnerabilitiesPanel({
         <div><h2>{selectedScan.repositoryName}</h2><p>{t('vulnerabilityListHelp', { count: findings.length })}</p></div>
         <div className="cg-scan-reference"><small>{t('commit')}</small><code>{selectedScan.commitSha?.slice(0, 12) ?? '—'}</code></div>
       </header>
+      <div className="cg-severity-filter">
+        <button className={!severityFilter ? 'active' : ''} onClick={() => onSeverityFilter(undefined)}>{t('all')}</button>
+        {SEVERITIES.map((severity) => <button className={severityFilter === severity ? 'active' : ''} key={severity} onClick={() => onSeverityFilter(severity)}>{t(`severity.${severity}`)}</button>)}
+      </div>
       {findings.length ? (
         <div className="cg-issues-workspace">
         <div className="cg-findings-list">
-          {findings.map((finding) => {
+          {visibleFindings.map((finding) => {
             const content = localizeFinding(finding, t);
             return (
               <button
@@ -731,6 +828,7 @@ function ReportsPanel({
   projectId,
   scans,
   selectedScan,
+  findings,
   onSelect,
   locale,
 }: {
@@ -738,6 +836,7 @@ function ReportsPanel({
   projectId?: string;
   scans: ScanSummary[];
   selectedScan?: ScanSummary;
+  findings: FindingSummary[];
   onSelect: (id: string) => void;
   locale: string;
 }) {
@@ -756,17 +855,51 @@ function ReportsPanel({
             <span>{scan.findingCount} {t('issues')}</span>
           </button>)}
         </div>
-        <div className="cg-report-export">
+        <div className="cg-report-preview">
           {selectedScan && base ? <>
-            <h3>{selectedScan.repositoryName}</h3>
-            <p>{t('reportExportHelp')}</p>
-            <dl><div><dt>{t('commit')}</dt><dd><code>{selectedScan.commitSha?.slice(0, 12)}</code></dd></div><div><dt>{t('qualityGate')}</dt><dd>{t(`gate.${selectedScan.qualityGate}`)}</dd></div><div><dt>{t('detectedIssues')}</dt><dd>{selectedScan.findingCount}</dd></div></dl>
-            <div className="cg-export-actions"><a href={`${base}?format=sarif`}>{t('downloadSarif')}<small>{t('sarifHelp')}</small></a><a href={`${base}?format=json`}>{t('downloadJson')}<small>{t('jsonHelp')}</small></a></div>
+            <div className="cg-report-cover">
+              <div><small>{t('securityAssessment')}</small><h3>{selectedScan.repositoryName}</h3><p>{t('reportGeneratedFrom', { scanner: selectedScan.scanner })}</p></div>
+              <div className={`cg-report-verdict ${selectedScan.qualityGate.toLowerCase()}`}><i /> <span><small>{t('qualityGate')}</small><strong>{t(`gate.${selectedScan.qualityGate}`)}</strong></span></div>
+            </div>
+            <div className="cg-report-metrics">
+              <div><small>{t('detectedIssues')}</small><strong>{selectedScan.findingCount}</strong></div>
+              <div className="critical"><small>{t('critical')}</small><strong>{selectedScan.criticalCount}</strong></div>
+              <div className="high"><small>{t('high')}</small><strong>{selectedScan.highCount}</strong></div>
+              <div className="medium"><small>{t('medium')}</small><strong>{selectedScan.mediumCount}</strong></div>
+            </div>
+            <div className="cg-report-body">
+              <section className="cg-report-severity">
+                <h4>{t('severityDistribution')}</h4>
+                <ReportSeverityChart scan={selectedScan} />
+              </section>
+              <section className="cg-report-context">
+                <h4>{t('analysisContext')}</h4>
+                <dl><div><dt>{t('commit')}</dt><dd><code>{selectedScan.commitSha?.slice(0, 12)}</code></dd></div><div><dt>{t('scanner')}</dt><dd>{selectedScan.scanner}</dd></div><div><dt>{t('completed')}</dt><dd>{new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeStyle: 'short' }).format(new Date(selectedScan.completedAt ?? selectedScan.queuedAt))}</dd></div></dl>
+              </section>
+            </div>
+            <section className="cg-report-issues">
+              <header><h4>{t('priorityIssues')}</h4><span>{findings.length} {t('issues')}</span></header>
+              {findings.slice(0, 6).map((finding) => <article key={finding.id}><div className={`report-severity ${finding.severity.toLowerCase()}`}><i />{t(`severity.${finding.severity}`)}</div><div><strong>{localizeFinding(finding, t).title}</strong><code>{finding.filePath}:{finding.startLine}</code></div><span>{t(`findingStatus.${finding.status}`)}</span></article>)}
+            </section>
+            <section className="cg-report-downloads"><div><h4>{t('exportReport')}</h4><p>{t('reportExportHelp')}</p></div><div className="cg-export-actions"><a href={`${base}?format=sarif`}>{t('downloadSarif')}<small>{t('sarifHelp')}</small></a><a href={`${base}?format=json`}>{t('downloadJson')}<small>{t('jsonHelp')}</small></a></div></section>
           </> : <div className="cg-analysis-empty">{t('noAnalysisData')}</div>}
         </div>
       </div>
     </section>
   );
+}
+
+function ReportSeverityChart({ scan }: { scan: ScanSummary }) {
+  const t = useTranslations('dashboard');
+  const rows = [
+    ['CRITICAL', scan.criticalCount, '#d9364f'],
+    ['HIGH', scan.highCount, '#f06464'],
+    ['MEDIUM', scan.mediumCount, '#e7a845'],
+    ['LOW', scan.lowCount, '#4aa9dc'],
+    ['INFO', scan.infoCount, '#687f98'],
+  ] as const;
+  const max = Math.max(1, ...rows.map(([, count]) => count));
+  return <div className="cg-report-bars">{rows.map(([severity, count, color]) => <div key={severity}><span>{t(`severity.${severity}`)}</span><div><i style={{ width: `${(count / max) * 100}%`, background: color }} /></div><b>{count}</b></div>)}</div>;
 }
 
 function localizeFinding(

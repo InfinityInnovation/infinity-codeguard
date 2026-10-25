@@ -37,7 +37,11 @@ const worker = new Worker(
       data: { status: 'RUNNING', startedAt: new Date(), errorMessage: null },
     });
     try {
-      const result = await runSemgrepScan(scan.repository.remoteUrl, scan.repository.defaultBranch);
+      const result = await runSemgrepScan(
+        scan.repository.remoteUrl,
+        scan.repository.defaultBranch,
+        scan.profile,
+      );
       const severityCounts = result.findings.reduce(
         (counts, finding) => ({ ...counts, [finding.severity]: counts[finding.severity] + 1 }),
         { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0, INFO: 0 },

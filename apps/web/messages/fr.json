@@ -109,6 +109,30 @@
     ,"low": "Faibles"
     ,"gate": { "PENDING": "En attente", "PASSED": "Validé", "FAILED": "Échec" }
     ,"findingStatus": { "OPEN": "Ouvert", "CONFIRMED": "Confirmé", "RESOLVED": "Résolu", "ACCEPTED_RISK": "Risque accepté", "FALSE_POSITIVE": "Faux positif" }
+    ,"securityReports": "Rapports de sécurité"
+    ,"securityReportsHelp": "Exportez un résultat complet et exploitable par vos outils DevSecOps."
+    ,"reportExportHelp": "Le rapport contient le verdict, les vulnérabilités, les règles et les emplacements concernés."
+    ,"downloadSarif": "Télécharger le rapport SARIF"
+    ,"downloadJson": "Télécharger le rapport JSON"
+    ,"sarifHelp": "GitHub Code Scanning et outils compatibles SARIF 2.1"
+    ,"jsonHelp": "Automatisation, archivage et intégrations personnalisées"
+    ,"issues": "problèmes"
+    ,"severityDistribution": "Répartition par gravité"
+    ,"latestResults": "Derniers résultats par dépôt"
+    ,"total": "Total"
+    ,"findingTrend": "Évolution des vulnérabilités"
+    ,"lastScans": "{count, plural, =0 {Aucune analyse} one {Dernière analyse} other {# dernières analyses}}"
+    ,"latest": "Dernier scan"
+    ,"maximum": "Maximum"
+    ,"gatePassed": "dépôts validés"
+    ,"all": "Toutes"
+    ,"securityAssessment": "Évaluation de sécurité"
+    ,"reportGeneratedFrom": "Rapport produit à partir du moteur {scanner}."
+    ,"analysisContext": "Contexte de l’analyse"
+    ,"scanner": "Moteur"
+    ,"completed": "Terminée le"
+    ,"priorityIssues": "Problèmes prioritaires"
+    ,"exportReport": "Exporter le rapport"
     ,"selectProjectShort": "Aucun projet"
     ,"repository": "Dépôt"
     ,"detectedIssues": "problèmes détectés"
@@ -123,6 +147,7 @@
       "analyses": { "title": "Analyses", "subtitle": "Suivez l’exécution de Semgrep et l’historique des scans." },
       "vulnerabilities": { "title": "Vulnérabilités", "subtitle": "Examinez les problèmes détectés lors de la dernière analyse." },
       "quality": { "title": "Quality Gates", "subtitle": "Contrôlez si vos dépôts respectent les exigences de sécurité." }
+      ,"reports": { "title": "Rapports", "subtitle": "Exportez et partagez les résultats de vos analyses de sécurité." }
     }
     ,"severity": { "CRITICAL": "Critique", "HIGH": "Élevée", "MEDIUM": "Moyenne", "LOW": "Faible", "INFO": "Information" }
     ,"finding": {

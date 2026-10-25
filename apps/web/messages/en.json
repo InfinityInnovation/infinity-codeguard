@@ -109,6 +109,30 @@
     ,"low": "Low"
     ,"gate": { "PENDING": "Pending", "PASSED": "Passed", "FAILED": "Failed" }
     ,"findingStatus": { "OPEN": "Open", "CONFIRMED": "Confirmed", "RESOLVED": "Resolved", "ACCEPTED_RISK": "Accepted risk", "FALSE_POSITIVE": "False positive" }
+    ,"securityReports": "Security reports"
+    ,"securityReportsHelp": "Export complete results for your DevSecOps toolchain."
+    ,"reportExportHelp": "The report includes the gate result, findings, rules and affected locations."
+    ,"downloadSarif": "Download SARIF report"
+    ,"downloadJson": "Download JSON report"
+    ,"sarifHelp": "GitHub Code Scanning and SARIF 2.1-compatible tools"
+    ,"jsonHelp": "Automation, archiving and custom integrations"
+    ,"issues": "issues"
+    ,"severityDistribution": "Severity distribution"
+    ,"latestResults": "Latest result per repository"
+    ,"total": "Total"
+    ,"findingTrend": "Vulnerability trend"
+    ,"lastScans": "{count, plural, =0 {No analyses} one {Latest analysis} other {Latest # analyses}}"
+    ,"latest": "Latest scan"
+    ,"maximum": "Maximum"
+    ,"gatePassed": "repositories passed"
+    ,"all": "All"
+    ,"securityAssessment": "Security assessment"
+    ,"reportGeneratedFrom": "Report generated from the {scanner} engine."
+    ,"analysisContext": "Analysis context"
+    ,"scanner": "Engine"
+    ,"completed": "Completed"
+    ,"priorityIssues": "Priority issues"
+    ,"exportReport": "Export report"
     ,"selectProjectShort": "No project"
     ,"repository": "Repository"
     ,"detectedIssues": "detected issues"
@@ -123,6 +147,7 @@
       "analyses": { "title": "Analyses", "subtitle": "Track Semgrep execution and scan history." },
       "vulnerabilities": { "title": "Vulnerabilities", "subtitle": "Review issues detected by the latest analysis." },
       "quality": { "title": "Quality Gates", "subtitle": "Check whether repositories meet your security requirements." }
+      ,"reports": { "title": "Reports", "subtitle": "Export and share your security analysis results." }
     }
     ,"severity": { "CRITICAL": "Critical", "HIGH": "High", "MEDIUM": "Medium", "LOW": "Low", "INFO": "Information" }
     ,"finding": {

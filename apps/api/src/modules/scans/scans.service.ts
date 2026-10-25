@@ -51,6 +51,7 @@ export class ScansService implements OnApplicationShutdown {
     organizationId: string,
     projectId: string,
     repositoryId: string,
+    profile: 'STANDARD' | 'SECRETS' | 'OWASP_TOP_TEN' | 'INFRASTRUCTURE_AS_CODE',
     actorId: string,
     requestCorrelationId: string,
   ): Promise<ScanSummary> {
@@ -65,7 +66,9 @@ export class ScansService implements OnApplicationShutdown {
     });
     if (activeScan) throw new ConflictException('An analysis is already running for this repository');
     const scan = await database.$transaction(async (tx) => {
-      const created = await tx.scan.create({ data: { organizationId, projectId, repositoryId } });
+      const created = await tx.scan.create({
+        data: { organizationId, projectId, repositoryId, profile },
+      });
       await tx.auditEvent.create({
         data: {
           organizationId,
@@ -74,7 +77,7 @@ export class ScansService implements OnApplicationShutdown {
           targetType: 'Scan',
           targetId: created.id,
           correlationId: requestCorrelationId,
-          metadata: { projectId, repositoryId, scanner: 'semgrep' },
+          metadata: { projectId, repositoryId, scanner: 'semgrep', profile },
         },
       });
       return created;
@@ -202,6 +205,7 @@ function toSummary(scan: {
   repositoryId: string;
   status: 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
   scanner: string;
+  profile: 'STANDARD' | 'SECRETS' | 'OWASP_TOP_TEN' | 'INFRASTRUCTURE_AS_CODE';
   commitSha: string | null;
   errorMessage: string | null;
   findingCount: number;

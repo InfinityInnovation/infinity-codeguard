@@ -38,6 +38,25 @@ export type ParsedFinding = {
   fingerprint: string;
 };
 
+export type ScanProfile =
+  | 'STANDARD'
+  | 'SECRETS'
+  | 'OWASP_TOP_TEN'
+  | 'INFRASTRUCTURE_AS_CODE';
+
+export function configsForProfile(profile: ScanProfile): string[] {
+  switch (profile) {
+    case 'SECRETS':
+      return ['p/secrets'];
+    case 'OWASP_TOP_TEN':
+      return ['p/owasp-top-ten'];
+    case 'INFRASTRUCTURE_AS_CODE':
+      return ['p/terraform', 'p/dockerfile'];
+    default:
+      return ['p/default'];
+  }
+}
+
 export function assertSafeRepositoryUrl(raw: string): URL {
   const url = new URL(raw);
   if (
@@ -73,7 +92,7 @@ export function parseSemgrepOutput(raw: string, checkoutDirectory: string): Pars
   });
 }
 
-export async function runSemgrepScan(remoteUrl: string, branch: string) {
+export async function runSemgrepScan(remoteUrl: string, branch: string, profile: ScanProfile) {
   const safeUrl = assertSafeRepositoryUrl(remoteUrl);
   const workspace = await mkdtemp(join(tmpdir(), 'codeguard-scan-'));
   const checkout = join(workspace, 'repository');
@@ -107,12 +126,12 @@ export async function runSemgrepScan(remoteUrl: string, branch: string) {
       env: environment,
       timeout: 10_000,
     });
+    const configs = configsForProfile(profile).flatMap((config) => ['--config', config]);
     await exec(
       'semgrep',
       [
         'scan',
-        '--config',
-        'p/default',
+        ...configs,
         '--json',
         '--quiet',
         '--metrics',

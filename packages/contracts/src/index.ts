@@ -91,6 +91,17 @@ export const repositorySummarySchema = z.object({
 export type RepositorySummary = z.infer<typeof repositorySummarySchema>;
 
 export const scanStatusSchema = z.enum(['QUEUED', 'RUNNING', 'SUCCEEDED', 'FAILED']);
+export const scanProfileSchema = z.enum([
+  'STANDARD',
+  'SECRETS',
+  'OWASP_TOP_TEN',
+  'INFRASTRUCTURE_AS_CODE',
+]);
+export const createScanSchema = z.object({
+  repositoryId: identifierSchema,
+  profile: scanProfileSchema.default('STANDARD'),
+});
+export type CreateScanInput = z.infer<typeof createScanSchema>;
 export const findingSeveritySchema = z.enum(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO']);
 export const findingStatusSchema = z.enum([
   'OPEN',
@@ -108,6 +119,7 @@ export const scanSummarySchema = z.object({
   repositoryName: z.string(),
   status: scanStatusSchema,
   scanner: z.string(),
+  profile: scanProfileSchema,
   commitSha: z.string().nullable(),
   findingCount: z.number().int().nonnegative(),
   criticalCount: z.number().int().nonnegative(),
