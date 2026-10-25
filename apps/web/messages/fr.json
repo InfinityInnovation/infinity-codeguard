@@ -99,6 +99,16 @@
     ,"loadingSource": "Chargement du code…"
     ,"sourceUnavailable": "L’extrait de code n’est pas disponible pour ce dépôt."
     ,"technicalDetail": "Message technique Semgrep"
+    ,"qualityGates": "Quality Gates"
+    ,"qualityGateTitle": "Contrôle qualité de sécurité"
+    ,"qualityGateRule": "Le contrôle échoue lorsqu’une vulnérabilité critique ou élevée est détectée."
+    ,"triage": "Traitement du problème"
+    ,"critical": "Critiques"
+    ,"high": "Élevées"
+    ,"medium": "Moyennes"
+    ,"low": "Faibles"
+    ,"gate": { "PENDING": "En attente", "PASSED": "Validé", "FAILED": "Échec" }
+    ,"findingStatus": { "OPEN": "Ouvert", "CONFIRMED": "Confirmé", "RESOLVED": "Résolu", "ACCEPTED_RISK": "Risque accepté", "FALSE_POSITIVE": "Faux positif" }
     ,"selectProjectShort": "Aucun projet"
     ,"repository": "Dépôt"
     ,"detectedIssues": "problèmes détectés"
@@ -111,7 +121,8 @@
       "dashboard": { "title": "Tableau de bord", "subtitle": "Vue synthétique de la sécurité de vos projets." },
       "projects": { "title": "Projets et dépôts", "subtitle": "Gérez les sources de code rattachées à votre organisation." },
       "analyses": { "title": "Analyses", "subtitle": "Suivez l’exécution de Semgrep et l’historique des scans." },
-      "vulnerabilities": { "title": "Vulnérabilités", "subtitle": "Examinez les problèmes détectés lors de la dernière analyse." }
+      "vulnerabilities": { "title": "Vulnérabilités", "subtitle": "Examinez les problèmes détectés lors de la dernière analyse." },
+      "quality": { "title": "Quality Gates", "subtitle": "Contrôlez si vos dépôts respectent les exigences de sécurité." }
     }
     ,"severity": { "CRITICAL": "Critique", "HIGH": "Élevée", "MEDIUM": "Moyenne", "LOW": "Faible", "INFO": "Information" }
     ,"finding": {

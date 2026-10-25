@@ -92,6 +92,14 @@ export type RepositorySummary = z.infer<typeof repositorySummarySchema>;
 
 export const scanStatusSchema = z.enum(['QUEUED', 'RUNNING', 'SUCCEEDED', 'FAILED']);
 export const findingSeveritySchema = z.enum(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO']);
+export const findingStatusSchema = z.enum([
+  'OPEN',
+  'CONFIRMED',
+  'RESOLVED',
+  'ACCEPTED_RISK',
+  'FALSE_POSITIVE',
+]);
+export const qualityGateStatusSchema = z.enum(['PENDING', 'PASSED', 'FAILED']);
 export const scanSummarySchema = z.object({
   id: identifierSchema,
   organizationId: identifierSchema,
@@ -102,6 +110,12 @@ export const scanSummarySchema = z.object({
   scanner: z.string(),
   commitSha: z.string().nullable(),
   findingCount: z.number().int().nonnegative(),
+  criticalCount: z.number().int().nonnegative(),
+  highCount: z.number().int().nonnegative(),
+  mediumCount: z.number().int().nonnegative(),
+  lowCount: z.number().int().nonnegative(),
+  infoCount: z.number().int().nonnegative(),
+  qualityGate: qualityGateStatusSchema,
   errorMessage: z.string().nullable(),
   queuedAt: z.string().datetime(),
   startedAt: z.string().datetime().nullable(),
@@ -114,12 +128,14 @@ export const findingSummarySchema = z.object({
   scanId: identifierSchema,
   ruleId: z.string(),
   severity: findingSeveritySchema,
+  status: findingStatusSchema,
   message: z.string(),
   filePath: z.string(),
   startLine: z.number().int().positive(),
   endLine: z.number().int().positive(),
 });
 export type FindingSummary = z.infer<typeof findingSummarySchema>;
+export const updateFindingStatusSchema = z.object({ status: findingStatusSchema });
 
 export const sourceLineSchema = z.object({
   number: z.number().int().positive(),

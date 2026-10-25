@@ -42,6 +42,20 @@ enum FindingSeverity {
   INFO
 }
 
+enum FindingStatus {
+  OPEN
+  CONFIRMED
+  RESOLVED
+  ACCEPTED_RISK
+  FALSE_POSITIVE
+}
+
+enum QualityGateStatus {
+  PENDING
+  PASSED
+  FAILED
+}
+
 model User {
   id           String       @id @default(uuid()) @db.Uuid
   email        String       @unique @db.VarChar(254)
@@ -140,6 +154,12 @@ model Scan {
   commitSha      String?      @db.Char(40)
   errorMessage   String?      @db.VarChar(500)
   findingCount   Int          @default(0)
+  criticalCount  Int          @default(0)
+  highCount      Int          @default(0)
+  mediumCount    Int          @default(0)
+  lowCount       Int          @default(0)
+  infoCount      Int          @default(0)
+  qualityGate    QualityGateStatus @default(PENDING)
   queuedAt       DateTime     @default(now()) @db.Timestamptz(6)
   startedAt      DateTime?    @db.Timestamptz(6)
   completedAt    DateTime?    @db.Timestamptz(6)
@@ -160,6 +180,7 @@ model Finding {
   scanId         String          @db.Uuid
   ruleId         String          @db.VarChar(255)
   severity       FindingSeverity
+  status         FindingStatus   @default(OPEN)
   message        String          @db.VarChar(2000)
   filePath       String          @db.VarChar(1000)
   startLine      Int

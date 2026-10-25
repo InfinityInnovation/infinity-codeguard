@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
-import type { Request } from 'express';
-import { identifierSchema } from '@codeguard/contracts';
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
+import type { Request, Response } from 'express';
+import { z } from 'zod';
+import { identifierSchema, updateFindingStatusSchema } from '@codeguard/contracts';
 import type {
   AuthenticatedUser,
   FindingSource,
@@ -82,5 +83,52 @@ export class ScansController {
     const findingId = identifierSchema.parse(rawFindingId);
     await this.organizations.assertMembership(user.id, organizationId);
     return this.scans.findingSource(organizationId, projectId, scanId, findingId);
+  }
+
+  @Patch(':scanId/findings/:findingId')
+  async updateFindingStatus(
+    @Param('organizationId') rawOrganizationId: string,
+    @Param('projectId') rawProjectId: string,
+    @Param('scanId') rawScanId: string,
+    @Param('findingId') rawFindingId: string,
+    @Body() raw: unknown,
+    @CurrentUser() user: AuthenticatedUser,
+    @Req() request: Request,
+  ): Promise<FindingSummary> {
+    const organizationId = identifierSchema.parse(rawOrganizationId);
+    const projectId = identifierSchema.parse(rawProjectId);
+    const scanId = identifierSchema.parse(rawScanId);
+    const findingId = identifierSchema.parse(rawFindingId);
+    const input = updateFindingStatusSchema.parse(raw);
+    await this.organizations.assertRole(user.id, organizationId, 'MEMBER');
+    return this.scans.updateFindingStatus(
+      organizationId,
+      projectId,
+      scanId,
+      findingId,
+      input,
+      user.id,
+      correlationId(request),
+    );
+  }
+
+  @Get(':scanId/report')
+  async report(
+    @Param('organizationId') rawOrganizationId: string,
+    @Param('projectId') rawProjectId: string,
+    @Param('scanId') rawScanId: string,
+    @Query('format') rawFormat: unknown,
+    @CurrentUser() user: AuthenticatedUser,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<unknown> {
+    const organizationId = identifierSchema.parse(rawOrganizationId);
+    const projectId = identifierSchema.parse(rawProjectId);
+    const scanId = identifierSchema.parse(rawScanId);
+    const format = z.enum(['sarif', 'json']).default('sarif').parse(rawFormat);
+    await this.organizations.assertMembership(user.id, organizationId);
+    const report = await this.scans.report(organizationId, projectId, scanId, format);
+    response.setHeader('content-type', 'application/json; charset=utf-8');
+    response.setHeader('content-disposition', `attachment; filename="${report.filename}"`);
+    return report.body;
   }
 }

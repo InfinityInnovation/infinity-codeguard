@@ -38,6 +38,10 @@ const worker = new Worker(
     });
     try {
       const result = await runSemgrepScan(scan.repository.remoteUrl, scan.repository.defaultBranch);
+      const severityCounts = result.findings.reduce(
+        (counts, finding) => ({ ...counts, [finding.severity]: counts[finding.severity] + 1 }),
+        { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0, INFO: 0 },
+      );
       if (result.findings.length) {
         await database.finding.createMany({
           data: result.findings.map((finding) => ({
@@ -55,6 +59,13 @@ const worker = new Worker(
           status: 'SUCCEEDED',
           commitSha: result.commitSha,
           findingCount: result.findings.length,
+          criticalCount: severityCounts.CRITICAL,
+          highCount: severityCounts.HIGH,
+          mediumCount: severityCounts.MEDIUM,
+          lowCount: severityCounts.LOW,
+          infoCount: severityCounts.INFO,
+          qualityGate:
+            severityCounts.CRITICAL > 0 || severityCounts.HIGH > 0 ? 'FAILED' : 'PASSED',
           completedAt: new Date(),
         },
       });

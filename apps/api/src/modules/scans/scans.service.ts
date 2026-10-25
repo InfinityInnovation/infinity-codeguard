@@ -8,8 +8,15 @@ import type { OnApplicationShutdown } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import IORedis from 'ioredis';
 import { database } from '@codeguard/database';
-import type { FindingSource, FindingSummary, ScanSummary } from '@codeguard/contracts';
+import type {
+  FindingSource,
+  FindingSummary,
+  ScanSummary,
+} from '@codeguard/contracts';
+import type { z } from 'zod';
+import { updateFindingStatusSchema } from '@codeguard/contracts';
 import { loadFindingSource } from './source';
+import { buildJsonReport, buildSarifReport } from './report';
 
 const SCAN_QUEUE = 'scan-orchestration';
 
@@ -104,6 +111,7 @@ export class ScansService implements OnApplicationShutdown {
         scanId: true,
         ruleId: true,
         severity: true,
+        status: true,
         message: true,
         filePath: true,
         startLine: true,
@@ -111,6 +119,59 @@ export class ScansService implements OnApplicationShutdown {
       },
       orderBy: [{ severity: 'asc' }, { filePath: 'asc' }, { startLine: 'asc' }],
     });
+  }
+
+  async updateFindingStatus(
+    organizationId: string,
+    projectId: string,
+    scanId: string,
+    findingId: string,
+    input: z.infer<typeof updateFindingStatusSchema>,
+    actorId: string,
+    requestCorrelationId: string,
+  ): Promise<FindingSummary> {
+    const existing = await database.finding.findFirst({
+      where: { id: findingId, scanId, organizationId, projectId },
+    });
+    if (!existing) throw new NotFoundException('Finding not found');
+    const updated = await database.$transaction(async (tx) => {
+      const finding = await tx.finding.update({
+        where: { id: findingId },
+        data: { status: input.status },
+      });
+      await tx.auditEvent.create({
+        data: {
+          organizationId,
+          actorId,
+          action: 'finding.status.updated',
+          targetType: 'Finding',
+          targetId: findingId,
+          correlationId: requestCorrelationId,
+          metadata: { projectId, scanId, previousStatus: existing.status, status: input.status },
+        },
+      });
+      return finding;
+    });
+    return updated;
+  }
+
+  async report(
+    organizationId: string,
+    projectId: string,
+    scanId: string,
+    format: 'sarif' | 'json',
+  ): Promise<{ body: unknown; filename: string }> {
+    const scan = await database.scan.findFirst({
+      where: { id: scanId, organizationId, projectId },
+      include: { repository: { select: { name: true } } },
+    });
+    if (!scan) throw new NotFoundException('Scan not found');
+    const summary = toSummary(scan);
+    const findings = await this.findings(organizationId, projectId, scanId);
+    return {
+      body: format === 'sarif' ? buildSarifReport(summary, findings) : buildJsonReport(summary, findings),
+      filename: `${scan.repository.name}-${scan.id}.${format === 'sarif' ? 'sarif' : 'json'}`,
+    };
   }
 
   async findingSource(
@@ -144,6 +205,12 @@ function toSummary(scan: {
   commitSha: string | null;
   errorMessage: string | null;
   findingCount: number;
+  criticalCount: number;
+  highCount: number;
+  mediumCount: number;
+  lowCount: number;
+  infoCount: number;
+  qualityGate: 'PENDING' | 'PASSED' | 'FAILED';
   queuedAt: Date;
   startedAt: Date | null;
   completedAt: Date | null;

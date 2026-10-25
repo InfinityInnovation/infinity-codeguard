@@ -99,6 +99,16 @@
     ,"loadingSource": "Loading source…"
     ,"sourceUnavailable": "The source preview is unavailable for this repository."
     ,"technicalDetail": "Semgrep technical message"
+    ,"qualityGates": "Quality Gates"
+    ,"qualityGateTitle": "Security quality gate"
+    ,"qualityGateRule": "The gate fails when a critical or high-severity vulnerability is detected."
+    ,"triage": "Issue workflow"
+    ,"critical": "Critical"
+    ,"high": "High"
+    ,"medium": "Medium"
+    ,"low": "Low"
+    ,"gate": { "PENDING": "Pending", "PASSED": "Passed", "FAILED": "Failed" }
+    ,"findingStatus": { "OPEN": "Open", "CONFIRMED": "Confirmed", "RESOLVED": "Resolved", "ACCEPTED_RISK": "Accepted risk", "FALSE_POSITIVE": "False positive" }
     ,"selectProjectShort": "No project"
     ,"repository": "Repository"
     ,"detectedIssues": "detected issues"
@@ -111,7 +121,8 @@
       "dashboard": { "title": "Dashboard", "subtitle": "A concise view of your projects' security." },
       "projects": { "title": "Projects and repositories", "subtitle": "Manage the source repositories connected to your organization." },
       "analyses": { "title": "Analyses", "subtitle": "Track Semgrep execution and scan history." },
-      "vulnerabilities": { "title": "Vulnerabilities", "subtitle": "Review issues detected by the latest analysis." }
+      "vulnerabilities": { "title": "Vulnerabilities", "subtitle": "Review issues detected by the latest analysis." },
+      "quality": { "title": "Quality Gates", "subtitle": "Check whether repositories meet your security requirements." }
     }
     ,"severity": { "CRITICAL": "Critical", "HIGH": "High", "MEDIUM": "Medium", "LOW": "Low", "INFO": "Information" }
     ,"finding": {
