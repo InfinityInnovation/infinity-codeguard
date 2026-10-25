@@ -4,17 +4,25 @@ import {
   authenticatedUserSchema,
   createRepositorySchema,
   createProjectSchema,
+  findingSourceSchema,
+  findingSummarySchema,
   organizationSummarySchema,
   projectSummarySchema,
   repositorySummarySchema,
   scanSummarySchema,
 } from '@codeguard/contracts';
-import type { CreateProjectInput, CreateRepositoryInput } from '@codeguard/contracts';
+import type {
+  CreateProjectInput,
+  CreateRepositoryInput,
+  FindingSummary,
+  ScanSummary,
+} from '@codeguard/contracts';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { apiRequest, ApiClientError } from '../../lib/api';
@@ -23,7 +31,9 @@ const organizationsSchema = z.array(organizationSummarySchema);
 const projectsSchema = z.array(projectSummarySchema);
 const repositoriesSchema = z.array(repositorySummarySchema);
 const scansSchema = z.array(scanSummarySchema);
+const findingsSchema = z.array(findingSummarySchema);
 const noContentSchema = z.undefined();
+type WorkspaceView = 'dashboard' | 'projects' | 'analyses' | 'vulnerabilities';
 
 export function Dashboard({ locale }: { locale: string }) {
   const t = useTranslations('dashboard');
@@ -33,6 +43,9 @@ export function Dashboard({ locale }: { locale: string }) {
   const [selectedId, setSelectedId] = useState<string>();
   const [search, setSearch] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState<string>();
+  const [selectedScanId, setSelectedScanId] = useState<string>();
+  const [selectedFindingId, setSelectedFindingId] = useState<string>();
+  const [activeView, setActiveView] = useState<WorkspaceView>('dashboard');
   const session = useQuery({
     queryKey: ['session'],
     queryFn: () => apiRequest('/auth/session', authenticatedUserSchema),
@@ -79,7 +92,42 @@ export function Dashboard({ locale }: { locale: string }) {
     refetchInterval: (query) =>
       query.state.data?.some((scan) => ['QUEUED', 'RUNNING'].includes(scan.status)) ? 2000 : false,
   });
-  const findingCount = scans.data?.reduce((total, scan) => total + scan.findingCount, 0) ?? 0;
+  const latestRepositoryScans =
+    scans.data?.filter(
+      (scan, index, history) =>
+        history.findIndex((candidate) => candidate.repositoryId === scan.repositoryId) === index,
+    ) ?? [];
+  const findingCount = latestRepositoryScans.reduce(
+    (total, scan) => total + scan.findingCount,
+    0,
+  );
+  const selectedScan = scans.data?.find(({ id }) => id === selectedScanId) ?? scans.data?.[0];
+  const findings = useQuery({
+    queryKey: ['findings', activeId, activeProjectId, selectedScan?.id],
+    queryFn: () =>
+      apiRequest(
+        `/organizations/${activeId}/projects/${activeProjectId}/scans/${selectedScan?.id}/findings`,
+        findingsSchema,
+      ),
+    enabled: Boolean(activeId && activeProjectId && selectedScan?.id && selectedScan.status === 'SUCCEEDED'),
+  });
+  const selectedFinding =
+    findings.data?.find(({ id }) => id === selectedFindingId) ?? findings.data?.[0];
+  const findingSource = useQuery({
+    queryKey: ['finding-source', activeId, activeProjectId, selectedScan?.id, selectedFinding?.id],
+    queryFn: () =>
+      apiRequest(
+        `/organizations/${activeId}/projects/${activeProjectId}/scans/${selectedScan?.id}/findings/${selectedFinding?.id}/source`,
+        findingSourceSchema,
+      ),
+    enabled: Boolean(
+      activeView === 'vulnerabilities' &&
+      activeId &&
+      activeProjectId &&
+      selectedScan?.id &&
+      selectedFinding?.id,
+    ),
+  });
 
   useEffect(() => {
     if (session.error instanceof ApiClientError && session.error.status === 401)
@@ -97,7 +145,7 @@ export function Dashboard({ locale }: { locale: string }) {
   if (session.isError || organizations.isError) return <Status text={common('error')} />;
 
   return (
-    <main className="sq-shell">
+    <main className="sq-shell cg-product-shell">
       <aside className="cg-sidebar">
         <div className="cg-brand">
           <span>∞</span>
@@ -106,20 +154,17 @@ export function Dashboard({ locale }: { locale: string }) {
             <small>Open Source DevSecOps</small>
           </div>
         </div>
-        <nav>
-          <a className="active" href="#overview">
-            ⌂ {t('dashboard')}
-          </a>
-          <a href="#projects">▣ {t('projects')}</a>
-          <a href="#repositories">⌘ {t('repositories')}</a>
-          <span>◫ {t('analyses')}</span>
-          <span>◇ {t('vulnerabilities')}</span>
-          <span>✓ {t('compliance')}</span>
-          <span>▤ {t('reports')}</span>
+        <nav aria-label={t('mainNavigation')}>
+          <small className="cg-nav-heading">{t('workspace')}</small>
+          <SidebarButton icon="dashboard" label={t('dashboard')} view="dashboard" activeView={activeView} onSelect={setActiveView} />
+          <SidebarButton icon="projects" label={t('projects')} view="projects" activeView={activeView} onSelect={setActiveView} />
+          <small className="cg-nav-heading security">{t('security')}</small>
+          <SidebarButton icon="analyses" label={t('analyses')} view="analyses" activeView={activeView} onSelect={setActiveView} />
+          <SidebarButton icon="vulnerabilities" label={t('vulnerabilities')} view="vulnerabilities" activeView={activeView} onSelect={setActiveView} />
         </nav>
-        <div className="cg-sidebar-note">
-          <strong>{t('enginePending')}</strong>
-          <small>{t('scansUnavailable')}</small>
+        <div className="cg-sidebar-footer">
+          <span>{activeOrganization?.name.slice(0, 2).toUpperCase()}</span>
+          <div><strong>{activeOrganization?.name}</strong><small>{activeOrganization?.role}</small></div>
         </div>
       </aside>
       <header className="sq-topbar">
@@ -143,14 +188,16 @@ export function Dashboard({ locale }: { locale: string }) {
           </button>
         </div>
       </header>
-      <section className="sq-page" id="overview">
+      <section className="sq-page">
         <div className="cg-page-heading">
           <div>
-            <h1>{t('dashboard')}</h1>
-            <p>{t('dashboardSubtitle')}</p>
+            <h1>{t(`views.${activeView}.title`)}</h1>
+            <p>{t(`views.${activeView}.subtitle`)}</p>
           </div>
-          <span className="cg-period">▣ {t('currentOverview')}</span>
+          <span className="cg-context">{activeOrganization?.name} / {activeProject?.name ?? t('selectProjectShort')}</span>
         </div>
+        {activeView === 'dashboard' && (
+          <>
         <div className="cg-overview">
           <div>
             <i>▱</i>
@@ -168,7 +215,7 @@ export function Dashboard({ locale }: { locale: string }) {
             <i>◈</i>
             <span>{t('analyses')}</span>
             <strong>{scans.data?.length ?? 0}</strong>
-            <small>{t('enginePending')}</small>
+            <small>{selectedScan ? t(`status.${selectedScan.status}`) : t('noAnalysisData')}</small>
           </div>
           <div>
             <i>△</i>
@@ -177,6 +224,10 @@ export function Dashboard({ locale }: { locale: string }) {
             <small>{t('noAnalysisData')}</small>
           </div>
         </div>
+        <DashboardSummary scans={latestRepositoryScans} locale={locale} onOpenAnalyses={() => setActiveView('analyses')} />
+          </>
+        )}
+        {activeView === 'projects' && (
         <div className="cg-dashboard-grid">
           <section className="cg-panel" id="projects">
             <div className="sq-page-title">
@@ -244,7 +295,9 @@ export function Dashboard({ locale }: { locale: string }) {
                       </time>
                       <span className="quality-state">
                         <i className="status-dot neutral" />
-                        {t('notAnalyzed')}
+                        {latestScanForProject(project.id, scans.data)
+                          ? t(`status.${latestScanForProject(project.id, scans.data)!.status}`)
+                          : t('notAnalyzed')}
                       </span>
                     </article>
                   ))
@@ -282,20 +335,25 @@ export function Dashboard({ locale }: { locale: string }) {
             ) : repositories.data?.length ? (
               <div className="cg-repo-grid">
                 {repositories.data.map((repository) => (
-                <article key={repository.id}>
+                  <article key={repository.id}>
                     <span>{repository.provider.replace('_', ' ')}</span>
                     <h3>{repository.name}</h3>
                     <code>{repository.remoteUrl}</code>
                     <small>
                       {t('defaultBranch')}: {repository.defaultBranch}
                     </small>
-                  {activeId && activeProjectId && (
-                    <ScanButton
-                      organizationId={activeId}
-                      projectId={activeProjectId}
-                      repositoryId={repository.id}
-                    />
-                  )}
+                    {activeId && activeProjectId && (
+                      <ScanButton
+                        organizationId={activeId}
+                        projectId={activeProjectId}
+                        repositoryId={repository.id}
+                        activeScan={scans.data?.find(
+                          (item) =>
+                            item.repositoryId === repository.id &&
+                            ['QUEUED', 'RUNNING'].includes(item.status),
+                        )}
+                      />
+                    )}
                   </article>
                 ))}
               </div>
@@ -307,10 +365,27 @@ export function Dashboard({ locale }: { locale: string }) {
             )}
           </section>
         </div>
-        <div className="sq-notice">
-          <strong>{t('analysisStatus')}</strong>
-          <span>{t('scannerReady')}</span>
-        </div>
+        )}
+        {activeView === 'analyses' && (
+        <AnalysisPanel
+          scans={scans.data ?? []}
+          selectedScan={selectedScan}
+          onSelect={setSelectedScanId}
+          locale={locale}
+        />
+        )}
+        {activeView === 'vulnerabilities' && (
+          <VulnerabilitiesPanel
+            findings={findings.data ?? []}
+            selectedScan={selectedScan}
+            selectedFinding={selectedFinding}
+            source={findingSource.data}
+            sourceLoading={findingSource.isPending && findingSource.isFetching}
+            sourceError={findingSource.error?.message}
+            onSelect={setSelectedFindingId}
+            loading={findings.isPending && findings.isFetching}
+          />
+        )}
       </section>
     </main>
   );
@@ -320,10 +395,12 @@ function ScanButton({
   organizationId,
   projectId,
   repositoryId,
+  activeScan,
 }: {
   organizationId: string;
   projectId: string;
   repositoryId: string;
+  activeScan?: ScanSummary;
 }) {
   const t = useTranslations('dashboard');
   const queryClient = useQueryClient();
@@ -339,12 +416,272 @@ function ScanButton({
   });
   return (
     <div className="cg-scan-action">
-      <button className="sq-primary" disabled={scan.isPending} onClick={() => scan.mutate()}>
-        {scan.isPending ? t('scanQueued') : t('startScan')}
+      <button
+        className="sq-primary"
+        disabled={scan.isPending || Boolean(activeScan)}
+        onClick={() => scan.mutate()}
+      >
+        {scan.isPending
+          ? t('scanQueued')
+          : activeScan
+            ? t(`status.${activeScan.status}`)
+            : t('startScan')}
       </button>
       {scan.error && <small className="error-text">{scan.error.message}</small>}
     </div>
   );
+}
+
+function AnalysisPanel({
+  scans,
+  selectedScan,
+  onSelect,
+  locale,
+}: {
+  scans: ScanSummary[];
+  selectedScan?: ScanSummary;
+  onSelect: (id: string) => void;
+  locale: string;
+}) {
+  const t = useTranslations('dashboard');
+  return (
+    <section className="cg-analysis-panel" id="analyses">
+      <header>
+        <div>
+          <h2>{t('analysisActivity')}</h2>
+          <p>{t('analysisActivityHelp')}</p>
+        </div>
+        {selectedScan && <ScanState scan={selectedScan} />}
+      </header>
+      {!scans.length ? (
+        <div className="cg-analysis-empty">{t('noAnalysisData')}</div>
+      ) : (
+        <div className="cg-analysis-layout">
+          <div className="cg-scan-history">
+            {scans.map((scan) => (
+              <button
+                className={scan.id === selectedScan?.id ? 'active' : ''}
+                key={scan.id}
+                onClick={() => onSelect(scan.id)}
+              >
+                <span><strong>{scan.repositoryName}</strong><small>{new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short' }).format(new Date(scan.queuedAt))}</small></span>
+                <ScanState scan={scan} />
+                <b>{scan.findingCount}</b>
+              </button>
+            ))}
+          </div>
+          <div className="cg-scan-detail">
+            {selectedScan?.status === 'FAILED' ? (
+              <div className="cg-scan-error"><strong>{t('analysisFailed')}</strong><code>{selectedScan.errorMessage ?? t('unknownError')}</code></div>
+            ) : selectedScan && ['QUEUED', 'RUNNING'].includes(selectedScan.status) ? (
+              <div className="cg-scan-progress"><i /><strong>{t(`status.${selectedScan.status}`)}</strong><span>{t('analysisProgressHelp')}</span></div>
+            ) : (
+              <div className="cg-analysis-result">
+                <div><small>{t('repository')}</small><strong>{selectedScan?.repositoryName}</strong></div>
+                <div><small>{t('detectedIssues')}</small><strong>{selectedScan?.findingCount ?? 0}</strong></div>
+                <div><small>{t('commit')}</small><code>{selectedScan?.commitSha?.slice(0, 12) ?? '—'}</code></div>
+                <p>{t('openVulnerabilitiesHelp')}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function SidebarButton({
+  icon,
+  label,
+  view,
+  activeView,
+  onSelect,
+}: {
+  icon: NavIconName;
+  label: string;
+  view: WorkspaceView;
+  activeView: WorkspaceView;
+  onSelect: (view: WorkspaceView) => void;
+}) {
+  return (
+    <button className={view === activeView ? 'active' : ''} onClick={() => onSelect(view)}>
+      <NavIcon name={icon} />
+      <span>{label}</span>
+    </button>
+  );
+}
+
+type NavIconName = 'dashboard' | 'projects' | 'analyses' | 'vulnerabilities';
+
+function NavIcon({ name }: { name: NavIconName }) {
+  const paths: Record<NavIconName, ReactNode> = {
+    dashboard: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>,
+    projects: <><path d="M3 7.5h7l2 2h9v10.5H3z" /><path d="M3 7.5V5h7l2 2.5" /></>,
+    analyses: <><path d="M4 19V9" /><path d="M10 19V5" /><path d="M16 19v-7" /><path d="M22 19H2" /></>,
+    vulnerabilities: <><path d="M12 3 2.8 19h18.4z" /><path d="M12 9v4" /><path d="M12 17h.01" /></>,
+  };
+  return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
+}
+
+function ScanState({ scan }: { scan: ScanSummary }) {
+  const t = useTranslations('dashboard');
+  return (
+    <span className={`scan-state ${scan.status.toLowerCase()}`}>
+      <i />{t(`status.${scan.status}`)}
+    </span>
+  );
+}
+
+function DashboardSummary({
+  scans,
+  locale,
+  onOpenAnalyses,
+}: {
+  scans: ScanSummary[];
+  locale: string;
+  onOpenAnalyses: () => void;
+}) {
+  const t = useTranslations('dashboard');
+  return (
+    <section className="cg-dashboard-summary">
+      <header><div><h2>{t('recentAnalyses')}</h2><p>{t('recentAnalysesHelp')}</p></div><button onClick={onOpenAnalyses}>{t('seeAllAnalyses')} →</button></header>
+      {scans.length ? scans.map((scan) => (
+        <article key={scan.id}>
+          <div><strong>{scan.repositoryName}</strong><small>{new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(scan.queuedAt))}</small></div>
+          <ScanState scan={scan} />
+          <div className="cg-summary-metric"><strong>{scan.findingCount}</strong><small>{t('detectedIssues')}</small></div>
+        </article>
+      )) : <div className="cg-analysis-empty">{t('noAnalysisData')}</div>}
+    </section>
+  );
+}
+
+function VulnerabilitiesPanel({
+  findings,
+  selectedScan,
+  selectedFinding,
+  source,
+  sourceLoading,
+  sourceError,
+  onSelect,
+  loading,
+}: {
+  findings: FindingSummary[];
+  selectedScan?: ScanSummary;
+  selectedFinding?: FindingSummary;
+  source?: z.infer<typeof findingSourceSchema>;
+  sourceLoading: boolean;
+  sourceError?: string;
+  onSelect: (id: string) => void;
+  loading: boolean;
+}) {
+  const t = useTranslations('dashboard');
+  if (loading) return <div className="cg-vulnerabilities-empty">{t('loadingFindings')}</div>;
+  if (!selectedScan) return <div className="cg-vulnerabilities-empty">{t('noAnalysisData')}</div>;
+  return (
+    <section className="cg-vulnerabilities-panel">
+      <header>
+        <div><h2>{selectedScan.repositoryName}</h2><p>{t('vulnerabilityListHelp', { count: findings.length })}</p></div>
+        <div className="cg-scan-reference"><small>{t('commit')}</small><code>{selectedScan.commitSha?.slice(0, 12) ?? '—'}</code></div>
+      </header>
+      {findings.length ? (
+        <div className="cg-issues-workspace">
+        <div className="cg-findings-list">
+          {findings.map((finding) => {
+            const content = localizeFinding(finding, t);
+            return (
+              <button
+                className={`severity-${finding.severity.toLowerCase()} ${finding.id === selectedFinding?.id ? 'active' : ''}`}
+                key={finding.id}
+                onClick={() => onSelect(finding.id)}
+              >
+                <div className="cg-finding-level"><i />{t(`severity.${finding.severity}`)}</div>
+                <div className="cg-finding-content">
+                  <h3>{content.title}</h3>
+                  <div><code>{finding.filePath}:{finding.startLine}</code><span>{content.category}</span></div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        <FindingDetail
+          finding={selectedFinding}
+          source={source}
+          loading={sourceLoading}
+          error={sourceError}
+        />
+        </div>
+      ) : <div className="cg-vulnerabilities-empty">{t('noFindings')}</div>}
+    </section>
+  );
+}
+
+function FindingDetail({
+  finding,
+  source,
+  loading,
+  error,
+}: {
+  finding?: FindingSummary;
+  source?: z.infer<typeof findingSourceSchema>;
+  loading: boolean;
+  error?: string;
+}) {
+  const t = useTranslations('dashboard');
+  if (!finding) return <div className="cg-issue-detail-empty">{t('selectIssue')}</div>;
+  const content = localizeFinding(finding, t);
+  return (
+    <section className="cg-issue-detail">
+      <header>
+        <div className="cg-finding-level"><i />{t(`severity.${finding.severity}`)}</div>
+        <h2>{content.title}</h2>
+        <p>{content.description}</p>
+      </header>
+      <dl>
+        <div><dt>{t('file')}</dt><dd><code>{finding.filePath}:{finding.startLine}</code></dd></div>
+        <div><dt>{t('rule')}</dt><dd><code>{finding.ruleId}</code></dd></div>
+        <div><dt>{t('category')}</dt><dd>{content.category}</dd></div>
+      </dl>
+      <div className="cg-code-heading"><strong>{t('sourceContext')}</strong>{source && <a href={source.sourceUrl} target="_blank" rel="noreferrer">{t('openOnGithub')} ↗</a>}</div>
+      {loading ? <div className="cg-code-state">{t('loadingSource')}</div> : error ? <div className="cg-code-state error-text">{t('sourceUnavailable')}</div> : source ? (
+        <pre className="cg-code-view" aria-label={t('sourceContext')}>
+          {source.lines.map((line) => <span className={line.highlighted ? 'highlighted' : ''} key={line.number}><b>{line.number}</b><code>{line.content || ' '}</code></span>)}
+        </pre>
+      ) : null}
+      <details className="cg-technical-detail"><summary>{t('technicalDetail')}</summary><p>{finding.message}</p></details>
+    </section>
+  );
+}
+
+function localizeFinding(
+  finding: FindingSummary,
+  t: ReturnType<typeof useTranslations>,
+): { title: string; description: string; category: string } {
+  if (finding.ruleId.includes('github-actions-mutable-action-tag')) return {
+    title: t('finding.mutableAction.title'),
+    description: t('finding.mutableAction.description'),
+    category: t('finding.supplyChain'),
+  };
+  if (finding.ruleId.includes('pnpm-block-exotic')) return {
+    title: t('finding.exoticDependencies.title'),
+    description: t('finding.exoticDependencies.description'),
+    category: t('finding.dependencies'),
+  };
+  if (finding.ruleId.includes('minimum-release-age')) return {
+    title: t('finding.releaseAge.title'),
+    description: t('finding.releaseAge.description'),
+    category: t('finding.dependencies'),
+  };
+  if (finding.ruleId.includes('pnpm-trust-policy')) return {
+    title: t('finding.trustPolicy.title'),
+    description: t('finding.trustPolicy.description'),
+    category: t('finding.dependencies'),
+  };
+  return { title: t('finding.generic.title'), description: t('finding.generic.description'), category: t('finding.codeSecurity') };
+}
+
+function latestScanForProject(projectId: string, scans?: ScanSummary[]): ScanSummary | undefined {
+  return scans?.find((scan) => scan.projectId === projectId);
 }
 
 function RepositoryForm({

@@ -7,11 +7,12 @@ COPY apps/web/package.json apps/web/package.json
 COPY packages/contracts/package.json packages/contracts/package.json
 COPY packages/ui/package.json packages/ui/package.json
 COPY packages/config/package.json packages/config/package.json
-RUN --mount=type=cache,id=codeguard-pnpm,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=codeguard-pnpm,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile --trust-lockfile
 FROM deps AS build
 COPY . .
-RUN --mount=type=cache,id=codeguard-pnpm,target=/root/.local/share/pnpm/store \
-    pnpm --filter @codeguard/contracts build && pnpm --filter @codeguard/web build
+RUN ./node_modules/.bin/tsc -p packages/contracts/tsconfig.json \
+    && cd apps/web \
+    && ./node_modules/.bin/next build --webpack
 FROM node:22.21.1-alpine AS runtime
 ENV NODE_ENV=production HOSTNAME=0.0.0.0 PORT=3000
 WORKDIR /app

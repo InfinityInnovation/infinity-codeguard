@@ -3,13 +3,39 @@ import { assertSafeRepositoryUrl, parseSemgrepOutput } from './semgrep.js';
 
 describe('Semgrep adapter', () => {
   it('parses findings without retaining source code', () => {
-    const findings = parseSemgrepOutput(JSON.stringify({ results: [{
-      check_id: 'javascript.lang.security.audit.xss', path: '/tmp/checkout/src/app.ts',
-      start: { line: 4 }, end: { line: 6 },
-      extra: { message: 'Unsafe output', severity: 'ERROR', metadata: { impact: 'HIGH' } },
-    }] }), '/tmp/checkout');
+    const findings = parseSemgrepOutput(
+      JSON.stringify({
+        results: [
+          {
+            check_id: 'javascript.lang.security.audit.xss',
+            path: '/tmp/checkout/src/app.ts',
+            start: { line: 4 },
+            end: { line: 6 },
+            extra: { message: 'Unsafe output', severity: 'ERROR', metadata: { impact: 'HIGH' } },
+          },
+        ],
+      }),
+      '/tmp/checkout',
+    );
     expect(findings[0]).toMatchObject({ severity: 'HIGH', filePath: 'src/app.ts', startLine: 4 });
     expect(findings[0]).not.toHaveProperty('source');
+  });
+
+  it('accepts and normalizes current Semgrep policy severity levels', () => {
+    const severities = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'];
+    const findings = parseSemgrepOutput(
+      JSON.stringify({
+        results: severities.map((severity, index) => ({
+          check_id: `rule-${severity}`,
+          path: `/tmp/checkout/src/file-${index}.ts`,
+          start: { line: index + 1 },
+          end: { line: index + 1 },
+          extra: { message: severity, severity },
+        })),
+      }),
+      '/tmp/checkout',
+    );
+    expect(findings.map((finding) => finding.severity)).toEqual(severities);
   });
 
   it('rejects credentials, internal hosts, ports and non-HTTPS URLs', () => {

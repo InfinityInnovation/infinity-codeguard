@@ -9,6 +9,9 @@ const redisUrl = process.env.REDIS_URL;
 if (!redisUrl) throw new Error('REDIS_URL is required');
 const logger = pino({ name: 'codeguard-worker', redact: ['*.token', '*.password', '*.secret'] });
 const connection = new IORedis(redisUrl, { maxRetriesPerRequest: null });
+void recoverStaleScans().catch((error: unknown) =>
+  logger.error({ error: error instanceof Error ? error.message : 'Unknown error' }, 'Stale scan recovery failed'),
+);
 
 const worker = new Worker(
   SCAN_QUEUE,
@@ -24,7 +27,7 @@ const worker = new Worker(
         organizationId: payload.organizationId,
         projectId: payload.projectId,
         repositoryId: payload.repositoryId,
-        status: 'QUEUED',
+        status: { in: ['QUEUED', 'RUNNING'] },
       },
       include: { repository: true },
     });
@@ -35,27 +38,25 @@ const worker = new Worker(
     });
     try {
       const result = await runSemgrepScan(scan.repository.remoteUrl, scan.repository.defaultBranch);
-      await database.$transaction(async (tx) => {
-        if (result.findings.length) {
-          await tx.finding.createMany({
-            data: result.findings.map((finding) => ({
-              ...finding,
-              scanId: scan.id,
-              organizationId: scan.organizationId,
-              projectId: scan.projectId,
-            })),
-            skipDuplicates: true,
-          });
-        }
-        await tx.scan.update({
-          where: { id: scan.id },
-          data: {
-            status: 'SUCCEEDED',
-            commitSha: result.commitSha,
-            findingCount: result.findings.length,
-            completedAt: new Date(),
-          },
+      if (result.findings.length) {
+        await database.finding.createMany({
+          data: result.findings.map((finding) => ({
+            ...finding,
+            scanId: scan.id,
+            organizationId: scan.organizationId,
+            projectId: scan.projectId,
+          })),
+          skipDuplicates: true,
         });
+      }
+      await database.scan.update({
+        where: { id: scan.id },
+        data: {
+          status: 'SUCCEEDED',
+          commitSha: result.commitSha,
+          findingCount: result.findings.length,
+          completedAt: new Date(),
+        },
       });
       logger.info({ scanId: scan.id, findingCount: result.findings.length }, 'Scan completed');
     } catch (error: unknown) {
@@ -83,3 +84,19 @@ async function shutdown(signal: string): Promise<void> {
 }
 process.on('SIGTERM', () => void shutdown('SIGTERM'));
 process.on('SIGINT', () => void shutdown('SIGINT'));
+
+async function recoverStaleScans(): Promise<void> {
+  const staleBefore = new Date(Date.now() - 15 * 60_000);
+  const recovered = await database.scan.updateMany({
+    where: {
+      status: { in: ['QUEUED', 'RUNNING'] },
+      queuedAt: { lt: staleBefore },
+    },
+    data: {
+      status: 'FAILED',
+      completedAt: new Date(),
+      errorMessage: 'Analysis interrupted before completion; start a new analysis.',
+    },
+  });
+  if (recovered.count) logger.warn({ count: recovered.count }, 'Recovered stale scans');
+}

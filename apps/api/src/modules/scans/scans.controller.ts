@@ -1,7 +1,12 @@
 import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { identifierSchema } from '@codeguard/contracts';
-import type { AuthenticatedUser, FindingSummary, ScanSummary } from '@codeguard/contracts';
+import type {
+  AuthenticatedUser,
+  FindingSource,
+  FindingSummary,
+  ScanSummary,
+} from '@codeguard/contracts';
 import { CurrentUser } from '../../common/current-user.decorator';
 import { correlationId } from '../../common/request-context';
 import { SessionGuard } from '../../common/session.guard';
@@ -61,5 +66,21 @@ export class ScansController {
     const scanId = identifierSchema.parse(rawScanId);
     await this.organizations.assertMembership(user.id, organizationId);
     return this.scans.findings(organizationId, projectId, scanId);
+  }
+
+  @Get(':scanId/findings/:findingId/source')
+  async findingSource(
+    @Param('organizationId') rawOrganizationId: string,
+    @Param('projectId') rawProjectId: string,
+    @Param('scanId') rawScanId: string,
+    @Param('findingId') rawFindingId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<FindingSource> {
+    const organizationId = identifierSchema.parse(rawOrganizationId);
+    const projectId = identifierSchema.parse(rawProjectId);
+    const scanId = identifierSchema.parse(rawScanId);
+    const findingId = identifierSchema.parse(rawFindingId);
+    await this.organizations.assertMembership(user.id, organizationId);
+    return this.scans.findingSource(organizationId, projectId, scanId, findingId);
   }
 }

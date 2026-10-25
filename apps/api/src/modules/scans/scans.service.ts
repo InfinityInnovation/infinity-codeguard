@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Injectable,
   NotFoundException,
   ServiceUnavailableException,
@@ -7,7 +8,8 @@ import type { OnApplicationShutdown } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import IORedis from 'ioredis';
 import { database } from '@codeguard/database';
-import type { FindingSummary, ScanSummary } from '@codeguard/contracts';
+import type { FindingSource, FindingSummary, ScanSummary } from '@codeguard/contracts';
+import { loadFindingSource } from './source';
 
 const SCAN_QUEUE = 'scan-orchestration';
 
@@ -50,6 +52,11 @@ export class ScansService implements OnApplicationShutdown {
       select: { id: true, name: true },
     });
     if (!repository) throw new NotFoundException('Repository not found');
+    const activeScan = await database.scan.findFirst({
+      where: { organizationId, projectId, repositoryId, status: { in: ['QUEUED', 'RUNNING'] } },
+      select: { id: true },
+    });
+    if (activeScan) throw new ConflictException('An analysis is already running for this repository');
     const scan = await database.$transaction(async (tx) => {
       const created = await tx.scan.create({ data: { organizationId, projectId, repositoryId } });
       await tx.auditEvent.create({
@@ -86,7 +93,9 @@ export class ScansService implements OnApplicationShutdown {
     projectId: string,
     scanId: string,
   ): Promise<FindingSummary[]> {
-    const scan = await database.scan.findFirst({ where: { id: scanId, organizationId, projectId } });
+    const scan = await database.scan.findFirst({
+      where: { id: scanId, organizationId, projectId },
+    });
     if (!scan) throw new NotFoundException('Scan not found');
     return database.finding.findMany({
       where: { scanId, organizationId, projectId },
@@ -103,13 +112,41 @@ export class ScansService implements OnApplicationShutdown {
       orderBy: [{ severity: 'asc' }, { filePath: 'asc' }, { startLine: 'asc' }],
     });
   }
+
+  async findingSource(
+    organizationId: string,
+    projectId: string,
+    scanId: string,
+    findingId: string,
+  ): Promise<FindingSource> {
+    const finding = await database.finding.findFirst({
+      where: { id: findingId, scanId, organizationId, projectId },
+      include: { scan: { include: { repository: true } } },
+    });
+    if (!finding || !finding.scan.commitSha) throw new NotFoundException('Finding source not found');
+    return loadFindingSource({
+      remoteUrl: finding.scan.repository.remoteUrl,
+      commitSha: finding.scan.commitSha,
+      filePath: finding.filePath,
+      startLine: finding.startLine,
+      endLine: finding.endLine,
+    });
+  }
 }
 
 function toSummary(scan: {
-  id: string; organizationId: string; projectId: string; repositoryId: string;
-  status: 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED'; scanner: string;
-  commitSha: string | null; errorMessage: string | null; findingCount: number;
-  queuedAt: Date; startedAt: Date | null; completedAt: Date | null;
+  id: string;
+  organizationId: string;
+  projectId: string;
+  repositoryId: string;
+  status: 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
+  scanner: string;
+  commitSha: string | null;
+  errorMessage: string | null;
+  findingCount: number;
+  queuedAt: Date;
+  startedAt: Date | null;
+  completedAt: Date | null;
   repository: { name: string };
 }): ScanSummary {
   return {

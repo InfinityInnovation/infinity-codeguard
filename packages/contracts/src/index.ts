@@ -121,6 +121,19 @@ export const findingSummarySchema = z.object({
 });
 export type FindingSummary = z.infer<typeof findingSummarySchema>;
 
+export const sourceLineSchema = z.object({
+  number: z.number().int().positive(),
+  content: z.string(),
+  highlighted: z.boolean(),
+});
+export const findingSourceSchema = z.object({
+  filePath: z.string(),
+  commitSha: z.string(),
+  sourceUrl: z.string().url(),
+  lines: z.array(sourceLineSchema).max(25),
+});
+export type FindingSource = z.infer<typeof findingSourceSchema>;
+
 export const apiErrorSchema = z.object({
   error: z.object({
     code: z.string(),

@@ -33,7 +33,8 @@
     "vulnerabilities": "Vulnerabilities",
     "compliance": "Compliance",
     "reports": "Reports",
-    "enginePending": "Engine pending",
+    "enginePending": "Engine active",
+    "scannerActive": "Semgrep engine active",
     "noAnalysisData": "No analysis data",
     "mainNavigation": "Main navigation",
     "issues": "Issues",
@@ -67,10 +68,61 @@
     "add": "Add",
     "emptyRepositories": "No repository attached",
     "emptyRepositoriesHelp": "Add an HTTPS Git URL to prepare a future analysis.",
-    "scansUnavailable": "Analysis remains disabled until a real adapter is validated.",
+    "scansUnavailable": "Semgrep analysis is available.",
     "scannerReady": "Semgrep Community Edition is active. Scans run in an isolated temporary workspace.",
     "startScan": "Start scan",
     "scanQueued": "Queueing…",
+    "analysisActivity": "Analysis activity",
+    "analysisActivityHelp": "Progress, errors and vulnerabilities detected by Semgrep.",
+    "analysisProgressHelp": "The repository is cloned into an isolated workspace and inspected by Semgrep.",
+    "analysisFailed": "Analysis failed",
+    "unknownError": "Unknown error",
+    "loadingFindings": "Loading vulnerabilities…",
+    "noFindings": "No vulnerabilities detected",
+    "commit": "Analyzed commit",
+    "status": {
+      "QUEUED": "Queued",
+      "RUNNING": "Analysis running",
+      "SUCCEEDED": "Completed",
+      "FAILED": "Failed"
+    },
     "role": "Role"
+    ,"comingSoon": "Soon"
+    ,"workspace": "Workspace"
+    ,"security": "Security"
+    ,"selectIssue": "Select an issue to display its details."
+    ,"file": "File"
+    ,"rule": "Rule"
+    ,"category": "Category"
+    ,"sourceContext": "Affected code"
+    ,"openOnGithub": "Open on GitHub"
+    ,"loadingSource": "Loading source…"
+    ,"sourceUnavailable": "The source preview is unavailable for this repository."
+    ,"technicalDetail": "Semgrep technical message"
+    ,"selectProjectShort": "No project"
+    ,"repository": "Repository"
+    ,"detectedIssues": "detected issues"
+    ,"openVulnerabilitiesHelp": "Open the Vulnerabilities view to review each issue and its recommendation."
+    ,"recentAnalyses": "Repository security status"
+    ,"recentAnalysesHelp": "Latest available analysis for each repository in the selected project."
+    ,"seeAllAnalyses": "View analyses"
+    ,"vulnerabilityListHelp": "{count, plural, =0 {No detected issues} one {# issue to review} other {# issues to review}}"
+    ,"views": {
+      "dashboard": { "title": "Dashboard", "subtitle": "A concise view of your projects' security." },
+      "projects": { "title": "Projects and repositories", "subtitle": "Manage the source repositories connected to your organization." },
+      "analyses": { "title": "Analyses", "subtitle": "Track Semgrep execution and scan history." },
+      "vulnerabilities": { "title": "Vulnerabilities", "subtitle": "Review issues detected by the latest analysis." }
+    }
+    ,"severity": { "CRITICAL": "Critical", "HIGH": "High", "MEDIUM": "Medium", "LOW": "Low", "INFO": "Information" }
+    ,"finding": {
+      "supplyChain": "Supply chain",
+      "dependencies": "Dependencies",
+      "codeSecurity": "Code security",
+      "mutableAction": { "title": "GitHub Action uses a mutable reference", "description": "Pin the action to a full commit SHA so a compromised version cannot be substituted silently." },
+      "exoticDependencies": { "title": "Untrusted sub-dependencies are allowed", "description": "Enable blockExoticSubdeps in pnpm configuration to prevent installation from unapproved dependency sources." },
+      "releaseAge": { "title": "Package safety delay is missing", "description": "Set minimumReleaseAge to avoid immediately installing recently published and potentially compromised versions." },
+      "trustPolicy": { "title": "pnpm trust policy is missing", "description": "Set trustPolicy to no-downgrade to prevent updates from weakening security protections." },
+      "generic": { "title": "Security issue detected", "description": "Review the affected location and apply the security rule's recommendation." }
+    }
   }
 }

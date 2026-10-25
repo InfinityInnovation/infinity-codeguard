@@ -65,6 +65,9 @@ importers:
       '@nestjs/swagger':
         specifier: 11.2.1
         version: 11.2.1(@nestjs/common@11.1.8(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@8.1.1))(@nestjs/core@11.1.8)(reflect-metadata@0.2.2)
+      bullmq:
+        specifier: 5.63.0
+        version: 5.63.0(supports-color@8.1.1)
       cookie-parser:
         specifier: 1.4.7
         version: 1.4.7
@@ -157,6 +160,9 @@ importers:
       '@codeguard/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@codeguard/database':
+        specifier: workspace:*
+        version: link:../../packages/database
       bullmq:
         specifier: 5.63.0
         version: 5.63.0(supports-color@8.1.1)

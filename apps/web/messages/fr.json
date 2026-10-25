@@ -33,7 +33,8 @@
     "vulnerabilities": "Vulnérabilités",
     "compliance": "Conformité",
     "reports": "Rapports",
-    "enginePending": "Moteur en attente",
+    "enginePending": "Moteur actif",
+    "scannerActive": "Moteur Semgrep actif",
     "noAnalysisData": "Aucune donnée d’analyse",
     "mainNavigation": "Navigation principale",
     "issues": "Problèmes",
@@ -67,10 +68,61 @@
     "add": "Ajouter",
     "emptyRepositories": "Aucun dépôt rattaché",
     "emptyRepositoriesHelp": "Ajoutez une URL HTTPS Git pour préparer une future analyse.",
-    "scansUnavailable": "Les analyses restent désactivées jusqu’à validation d’un adaptateur réel.",
+    "scansUnavailable": "Les analyses Semgrep sont disponibles.",
     "scannerReady": "Semgrep Community Edition est actif. Les analyses sont exécutées dans un espace temporaire isolé.",
     "startScan": "Lancer l’analyse",
     "scanQueued": "Mise en file…",
+    "analysisActivity": "Activité des analyses",
+    "analysisActivityHelp": "Progression, erreurs et vulnérabilités détectées par Semgrep.",
+    "analysisProgressHelp": "Le dépôt est cloné dans un espace isolé puis inspecté par Semgrep.",
+    "analysisFailed": "L’analyse a échoué",
+    "unknownError": "Erreur inconnue",
+    "loadingFindings": "Chargement des vulnérabilités…",
+    "noFindings": "Aucune vulnérabilité détectée",
+    "commit": "Commit analysé",
+    "status": {
+      "QUEUED": "En attente",
+      "RUNNING": "Analyse en cours",
+      "SUCCEEDED": "Terminée",
+      "FAILED": "Échec"
+    },
     "role": "Rôle"
+    ,"comingSoon": "Bientôt"
+    ,"workspace": "Espace de travail"
+    ,"security": "Sécurité"
+    ,"selectIssue": "Sélectionnez un problème pour afficher son détail."
+    ,"file": "Fichier"
+    ,"rule": "Règle"
+    ,"category": "Catégorie"
+    ,"sourceContext": "Code concerné"
+    ,"openOnGithub": "Ouvrir sur GitHub"
+    ,"loadingSource": "Chargement du code…"
+    ,"sourceUnavailable": "L’extrait de code n’est pas disponible pour ce dépôt."
+    ,"technicalDetail": "Message technique Semgrep"
+    ,"selectProjectShort": "Aucun projet"
+    ,"repository": "Dépôt"
+    ,"detectedIssues": "problèmes détectés"
+    ,"openVulnerabilitiesHelp": "Consultez la vue Vulnérabilités pour examiner chaque problème et sa recommandation."
+    ,"recentAnalyses": "État de sécurité des dépôts"
+    ,"recentAnalysesHelp": "Dernière analyse disponible pour chaque dépôt du projet sélectionné."
+    ,"seeAllAnalyses": "Voir les analyses"
+    ,"vulnerabilityListHelp": "{count, plural, =0 {Aucun problème détecté} one {# problème à examiner} other {# problèmes à examiner}}"
+    ,"views": {
+      "dashboard": { "title": "Tableau de bord", "subtitle": "Vue synthétique de la sécurité de vos projets." },
+      "projects": { "title": "Projets et dépôts", "subtitle": "Gérez les sources de code rattachées à votre organisation." },
+      "analyses": { "title": "Analyses", "subtitle": "Suivez l’exécution de Semgrep et l’historique des scans." },
+      "vulnerabilities": { "title": "Vulnérabilités", "subtitle": "Examinez les problèmes détectés lors de la dernière analyse." }
+    }
+    ,"severity": { "CRITICAL": "Critique", "HIGH": "Élevée", "MEDIUM": "Moyenne", "LOW": "Faible", "INFO": "Information" }
+    ,"finding": {
+      "supplyChain": "Chaîne d’approvisionnement",
+      "dependencies": "Dépendances",
+      "codeSecurity": "Sécurité du code",
+      "mutableAction": { "title": "Action GitHub référencée par une version modifiable", "description": "Figez l’action sur le SHA complet d’un commit afin qu’une version compromise ne puisse pas être substituée silencieusement." },
+      "exoticDependencies": { "title": "Sous-dépendances non fiables autorisées", "description": "Activez blockExoticSubdeps dans la configuration pnpm pour empêcher l’installation de sources de dépendances non approuvées." },
+      "releaseAge": { "title": "Délai de sécurité des paquets absent", "description": "Définissez minimumReleaseAge afin d’éviter l’installation immédiate de versions récemment publiées et potentiellement compromises." },
+      "trustPolicy": { "title": "Politique de confiance pnpm absente", "description": "Configurez trustPolicy sur no-downgrade pour empêcher une mise à jour de réduire les protections de sécurité." },
+      "generic": { "title": "Problème de sécurité détecté", "description": "Examinez l’emplacement concerné et appliquez la recommandation de la règle de sécurité." }
+    }
   }
 }
