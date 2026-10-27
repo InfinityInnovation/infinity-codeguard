@@ -20,7 +20,12 @@ export function githubAppConfiguration(): GitHubAppConfiguration | null {
   const encodedKey = process.env.GITHUB_APP_PRIVATE_KEY_BASE64;
   const stateSecret = process.env.GITHUB_APP_STATE_SECRET;
   if (!appId || !slug || !encodedKey || !stateSecret) return null;
-  return { appId, slug, privateKey: Buffer.from(encodedKey, 'base64').toString('utf8'), stateSecret };
+  return {
+    appId,
+    slug,
+    privateKey: Buffer.from(encodedKey, 'base64').toString('utf8'),
+    stateSecret,
+  };
 }
 
 export function createAppJwt(configuration: GitHubAppConfiguration): string {

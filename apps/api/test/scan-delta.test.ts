@@ -3,13 +3,15 @@ import { classifyScanFindings } from '../src/modules/scans/scan-delta.js';
 
 describe('scan finding history', () => {
   it('separates new, fixed, continuing and reopened findings', () => {
-    expect(classifyScanFindings(
-      'current',
-      'previous',
-      ['persisting', 'new', 'reopened'],
-      ['persisting', 'fixed'],
-      ['reopened'],
-    )).toEqual({
+    expect(
+      classifyScanFindings(
+        'current',
+        'previous',
+        ['persisting', 'new', 'reopened'],
+        ['persisting', 'fixed'],
+        ['reopened'],
+      ),
+    ).toEqual({
       scanId: 'current',
       previousScanId: 'previous',
       newCount: 1,

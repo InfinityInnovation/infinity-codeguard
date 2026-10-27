@@ -28,9 +28,7 @@ export function buildSarifReport(scan: ScanSummary, findings: ReportFinding[]) {
           },
         },
         automationDetails: { id: `${scan.repositoryName}/${scan.id}` },
-        versionControlProvenance: scan.commitSha
-          ? [{ revisionId: scan.commitSha }]
-          : [],
+        versionControlProvenance: scan.commitSha ? [{ revisionId: scan.commitSha }] : [],
         results: findings.map((finding) => ({
           ruleId: finding.ruleId,
           level: sarifLevel(finding.severity),

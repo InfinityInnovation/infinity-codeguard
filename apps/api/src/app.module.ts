@@ -11,7 +11,15 @@ import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { ScannerModule } from './modules/scanner/scanner.module';
 
 @Module({
-  imports: [AuthModule, OrganizationsModule, ProjectsModule, RepositoriesModule, ScansModule, IntegrationsModule, ScannerModule],
+  imports: [
+    AuthModule,
+    OrganizationsModule,
+    ProjectsModule,
+    RepositoriesModule,
+    ScansModule,
+    IntegrationsModule,
+    ScannerModule,
+  ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: CsrfGuard }],
 })

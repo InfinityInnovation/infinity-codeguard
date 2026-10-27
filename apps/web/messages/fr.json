@@ -93,7 +93,12 @@
     "loadingIntegration": "Chargement de l’intégration…",
     "projectSecurityWorkspace": "Pilotage de la qualité et de la sécurité du code pour ce projet.",
     "projectNavigation": "Navigation du projet",
-    "projectTabs": { "overview": "Vue d’ensemble", "issues": "Problèmes", "measures": "Mesures", "activity": "Activité" },
+    "projectTabs": {
+      "overview": "Vue d’ensemble",
+      "issues": "Problèmes",
+      "measures": "Mesures",
+      "activity": "Activité"
+    },
     "onLatestAnalysis": "sur les dernières analyses",
     "requiresAttention": "à traiter en priorité",
     "analysisReliability": "Fiabilité des analyses",
@@ -148,81 +153,132 @@
       "SUCCEEDED": "Terminée",
       "FAILED": "Échec"
     },
-    "role": "Rôle"
-    ,"comingSoon": "Bientôt"
-    ,"workspace": "Espace de travail"
-    ,"security": "Sécurité"
-    ,"selectIssue": "Sélectionnez un problème pour afficher son détail."
-    ,"file": "Fichier"
-    ,"rule": "Règle"
-    ,"category": "Catégorie"
-    ,"sourceContext": "Code concerné"
-    ,"openOnGithub": "Ouvrir sur GitHub"
-    ,"loadingSource": "Chargement du code…"
-    ,"sourceUnavailable": "L’extrait de code n’est pas disponible pour cette analyse. Relancez le scan avec le scanner à jour pour enregistrer le code concerné."
-    ,"technicalDetail": "Message technique Semgrep"
-    ,"qualityGates": "Quality Gates"
-    ,"qualityGateTitle": "Contrôle qualité de sécurité"
-    ,"qualityGateRule": "Le contrôle échoue lorsqu’une vulnérabilité critique ou élevée est détectée."
-    ,"triage": "Traitement du problème"
-    ,"critical": "Critiques"
-    ,"high": "Élevées"
-    ,"medium": "Moyennes"
-    ,"low": "Faibles"
-    ,"gate": { "PENDING": "En attente", "PASSED": "Validé", "FAILED": "Échec" }
-    ,"findingStatus": { "OPEN": "Ouvert", "CONFIRMED": "Confirmé", "RESOLVED": "Résolu", "ACCEPTED_RISK": "Risque accepté", "FALSE_POSITIVE": "Faux positif" }
-    ,"securityReports": "Rapports de sécurité"
-    ,"securityReportsHelp": "Exportez un résultat complet et exploitable par vos outils DevSecOps."
-    ,"reportExportHelp": "Le rapport contient le verdict, les vulnérabilités, les règles et les emplacements concernés."
-    ,"downloadSarif": "Télécharger le rapport SARIF"
-    ,"downloadJson": "Télécharger le rapport JSON"
-    ,"sarifHelp": "GitHub Code Scanning et outils compatibles SARIF 2.1"
-    ,"jsonHelp": "Automatisation, archivage et intégrations personnalisées"
-    ,"issues": "problèmes"
-    ,"severityDistribution": "Répartition par gravité"
-    ,"latestResults": "Derniers résultats par dépôt"
-    ,"total": "Total"
-    ,"findingTrend": "Évolution des vulnérabilités"
-    ,"lastScans": "{count, plural, =0 {Aucune analyse} one {Dernière analyse} other {# dernières analyses}}"
-    ,"latest": "Dernier scan"
-    ,"maximum": "Maximum"
-    ,"gatePassed": "dépôts validés"
-    ,"all": "Toutes"
-    ,"securityAssessment": "Évaluation de sécurité"
-    ,"reportGeneratedFrom": "Rapport produit à partir du moteur {scanner}."
-    ,"analysisContext": "Contexte de l’analyse"
-    ,"scanner": "Moteur"
-    ,"completed": "Terminée le"
-    ,"priorityIssues": "Problèmes prioritaires"
-    ,"exportReport": "Exporter le rapport"
-    ,"selectProjectShort": "Aucun projet"
-    ,"repository": "Dépôt"
-    ,"detectedIssues": "problèmes détectés"
-    ,"openVulnerabilitiesHelp": "Consultez la vue Vulnérabilités pour examiner chaque problème et sa recommandation."
-    ,"recentAnalyses": "État de sécurité des dépôts"
-    ,"recentAnalysesHelp": "Dernière analyse disponible pour chaque dépôt du projet sélectionné."
-    ,"seeAllAnalyses": "Voir les analyses"
-    ,"vulnerabilityListHelp": "{count, plural, =0 {Aucun problème détecté} one {# problème à examiner} other {# problèmes à examiner}}"
-    ,"views": {
-      "dashboard": { "title": "Tableau de bord", "subtitle": "Vue synthétique de la sécurité de vos projets." },
-      "projects": { "title": "Projets et dépôts", "subtitle": "Gérez les sources de code rattachées à votre organisation." },
-      "project": { "title": "Projet", "subtitle": "Analyse détaillée de la qualité et de la sécurité du code." },
-      "analyses": { "title": "Analyses", "subtitle": "Suivez l’exécution de Semgrep et l’historique des scans." },
-      "vulnerabilities": { "title": "Vulnérabilités", "subtitle": "Examinez les problèmes détectés lors de la dernière analyse." },
-      "quality": { "title": "Quality Gates", "subtitle": "Contrôlez si vos dépôts respectent les exigences de sécurité." }
-      ,"reports": { "title": "Rapports", "subtitle": "Exportez et partagez les résultats de vos analyses de sécurité." }
-      ,"integrations": { "title": "Intégrations", "subtitle": "Connectez vos fournisseurs Git sans exposer de secrets permanents." }
-    }
-    ,"severity": { "CRITICAL": "Critique", "HIGH": "Élevée", "MEDIUM": "Moyenne", "LOW": "Faible", "INFO": "Information" }
-    ,"finding": {
+    "role": "Rôle",
+    "comingSoon": "Bientôt",
+    "workspace": "Espace de travail",
+    "security": "Sécurité",
+    "selectIssue": "Sélectionnez un problème pour afficher son détail.",
+    "file": "Fichier",
+    "rule": "Règle",
+    "category": "Catégorie",
+    "sourceContext": "Code concerné",
+    "openOnGithub": "Ouvrir sur GitHub",
+    "loadingSource": "Chargement du code…",
+    "sourceUnavailable": "L’extrait de code n’est pas disponible pour cette analyse. Relancez le scan avec le scanner à jour pour enregistrer le code concerné.",
+    "technicalDetail": "Message technique Semgrep",
+    "qualityGates": "Quality Gates",
+    "qualityGateTitle": "Contrôle qualité de sécurité",
+    "qualityGateRule": "Le contrôle échoue lorsqu’une vulnérabilité critique ou élevée est détectée.",
+    "triage": "Traitement du problème",
+    "critical": "Critiques",
+    "high": "Élevées",
+    "medium": "Moyennes",
+    "low": "Faibles",
+    "gate": { "PENDING": "En attente", "PASSED": "Validé", "FAILED": "Échec" },
+    "findingStatus": {
+      "OPEN": "Ouvert",
+      "CONFIRMED": "Confirmé",
+      "RESOLVED": "Résolu",
+      "ACCEPTED_RISK": "Risque accepté",
+      "FALSE_POSITIVE": "Faux positif"
+    },
+    "securityReports": "Rapports de sécurité",
+    "securityReportsHelp": "Exportez un résultat complet et exploitable par vos outils DevSecOps.",
+    "reportExportHelp": "Le rapport contient le verdict, les vulnérabilités, les règles et les emplacements concernés.",
+    "downloadSarif": "Télécharger le rapport SARIF",
+    "downloadJson": "Télécharger le rapport JSON",
+    "sarifHelp": "GitHub Code Scanning et outils compatibles SARIF 2.1",
+    "jsonHelp": "Automatisation, archivage et intégrations personnalisées",
+    "issues": "problèmes",
+    "severityDistribution": "Répartition par gravité",
+    "latestResults": "Derniers résultats par dépôt",
+    "total": "Total",
+    "findingTrend": "Évolution des vulnérabilités",
+    "lastScans": "{count, plural, =0 {Aucune analyse} one {Dernière analyse} other {# dernières analyses}}",
+    "latest": "Dernier scan",
+    "maximum": "Maximum",
+    "gatePassed": "dépôts validés",
+    "all": "Toutes",
+    "securityAssessment": "Évaluation de sécurité",
+    "reportGeneratedFrom": "Rapport produit à partir du moteur {scanner}.",
+    "analysisContext": "Contexte de l’analyse",
+    "scanner": "Moteur",
+    "completed": "Terminée le",
+    "priorityIssues": "Problèmes prioritaires",
+    "exportReport": "Exporter le rapport",
+    "selectProjectShort": "Aucun projet",
+    "repository": "Dépôt",
+    "detectedIssues": "problèmes détectés",
+    "openVulnerabilitiesHelp": "Consultez la vue Vulnérabilités pour examiner chaque problème et sa recommandation.",
+    "recentAnalyses": "État de sécurité des dépôts",
+    "recentAnalysesHelp": "Dernière analyse disponible pour chaque dépôt du projet sélectionné.",
+    "seeAllAnalyses": "Voir les analyses",
+    "vulnerabilityListHelp": "{count, plural, =0 {Aucun problème détecté} one {# problème à examiner} other {# problèmes à examiner}}",
+    "views": {
+      "dashboard": {
+        "title": "Tableau de bord",
+        "subtitle": "Vue synthétique de la sécurité de vos projets."
+      },
+      "projects": {
+        "title": "Projets et dépôts",
+        "subtitle": "Gérez les sources de code rattachées à votre organisation."
+      },
+      "project": {
+        "title": "Projet",
+        "subtitle": "Analyse détaillée de la qualité et de la sécurité du code."
+      },
+      "analyses": {
+        "title": "Analyses",
+        "subtitle": "Suivez l’exécution de Semgrep et l’historique des scans."
+      },
+      "vulnerabilities": {
+        "title": "Vulnérabilités",
+        "subtitle": "Examinez les problèmes détectés lors de la dernière analyse."
+      },
+      "quality": {
+        "title": "Quality Gates",
+        "subtitle": "Contrôlez si vos dépôts respectent les exigences de sécurité."
+      },
+      "reports": {
+        "title": "Rapports",
+        "subtitle": "Exportez et partagez les résultats de vos analyses de sécurité."
+      },
+      "integrations": {
+        "title": "Intégrations",
+        "subtitle": "Connectez vos fournisseurs Git sans exposer de secrets permanents."
+      }
+    },
+    "severity": {
+      "CRITICAL": "Critique",
+      "HIGH": "Élevée",
+      "MEDIUM": "Moyenne",
+      "LOW": "Faible",
+      "INFO": "Information"
+    },
+    "finding": {
       "supplyChain": "Chaîne d’approvisionnement",
       "dependencies": "Dépendances",
       "codeSecurity": "Sécurité du code",
-      "mutableAction": { "title": "Action GitHub référencée par une version modifiable", "description": "Figez l’action sur le SHA complet d’un commit afin qu’une version compromise ne puisse pas être substituée silencieusement." },
-      "exoticDependencies": { "title": "Sous-dépendances non fiables autorisées", "description": "Activez blockExoticSubdeps dans la configuration pnpm pour empêcher l’installation de sources de dépendances non approuvées." },
-      "releaseAge": { "title": "Délai de sécurité des paquets absent", "description": "Définissez minimumReleaseAge afin d’éviter l’installation immédiate de versions récemment publiées et potentiellement compromises." },
-      "trustPolicy": { "title": "Politique de confiance pnpm absente", "description": "Configurez trustPolicy sur no-downgrade pour empêcher une mise à jour de réduire les protections de sécurité." },
-      "generic": { "title": "Problème de sécurité détecté", "description": "Examinez l’emplacement concerné et appliquez la recommandation de la règle de sécurité." }
+      "mutableAction": {
+        "title": "Action GitHub référencée par une version modifiable",
+        "description": "Figez l’action sur le SHA complet d’un commit afin qu’une version compromise ne puisse pas être substituée silencieusement."
+      },
+      "exoticDependencies": {
+        "title": "Sous-dépendances non fiables autorisées",
+        "description": "Activez blockExoticSubdeps dans la configuration pnpm pour empêcher l’installation de sources de dépendances non approuvées."
+      },
+      "releaseAge": {
+        "title": "Délai de sécurité des paquets absent",
+        "description": "Définissez minimumReleaseAge afin d’éviter l’installation immédiate de versions récemment publiées et potentiellement compromises."
+      },
+      "trustPolicy": {
+        "title": "Politique de confiance pnpm absente",
+        "description": "Configurez trustPolicy sur no-downgrade pour empêcher une mise à jour de réduire les protections de sécurité."
+      },
+      "generic": {
+        "title": "Problème de sécurité détecté",
+        "description": "Examinez l’emplacement concerné et appliquez la recommandation de la règle de sécurité."
+      }
     }
   }
 }

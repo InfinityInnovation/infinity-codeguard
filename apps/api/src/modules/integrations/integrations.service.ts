@@ -17,18 +17,18 @@ type GitHubInstallationResponse = {
 
 @Injectable()
 export class IntegrationsService {
-  async githubStatus(
-    organizationId: string,
-    userId: string,
-  ): Promise<GitHubIntegration> {
+  async githubStatus(organizationId: string, userId: string): Promise<GitHubIntegration> {
     const configuration = githubAppConfiguration();
-    const installation = await database.gitHubInstallation.findUnique({ where: { organizationId } });
+    const installation = await database.gitHubInstallation.findUnique({
+      where: { organizationId },
+    });
     return {
       configured: Boolean(configuration),
       connected: Boolean(installation),
       accountLogin: installation?.accountLogin ?? null,
       repositorySelection:
-        installation?.repositorySelection === 'all' || installation?.repositorySelection === 'selected'
+        installation?.repositorySelection === 'all' ||
+        installation?.repositorySelection === 'selected'
           ? installation.repositorySelection
           : null,
       suspended: Boolean(installation?.suspendedAt),
@@ -67,7 +67,8 @@ export class IntegrationsService {
     });
     if (!response.ok) throw new BadRequestException('GitHub installation could not be verified');
     const installation = (await response.json()) as GitHubInstallationResponse;
-    if (!installation.account?.login) throw new BadRequestException('GitHub installation has no account');
+    if (!installation.account?.login)
+      throw new BadRequestException('GitHub installation has no account');
     await database.gitHubInstallation.upsert({
       where: { organizationId: state.organizationId },
       create: {

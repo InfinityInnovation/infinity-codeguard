@@ -1,7 +1,22 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { z } from 'zod';
-import { createScanSchema, identifierSchema, updateFindingStatusSchema } from '@codeguard/contracts';
+import {
+  createScanSchema,
+  identifierSchema,
+  updateFindingStatusSchema,
+} from '@codeguard/contracts';
 import type {
   AuthenticatedUser,
   FindingSource,

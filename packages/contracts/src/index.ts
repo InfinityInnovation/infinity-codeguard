@@ -148,14 +148,27 @@ export const scannerFindingSchema = z.object({
     .refine((path) => !path.startsWith('/') && !path.split('/').includes('..'), 'Unsafe file path'),
   startLine: z.number().int().positive(),
   endLine: z.number().int().positive(),
-  sourcePreview: z.array(z.object({
-    number: z.number().int().positive(),
-    content: z.string().max(500),
-    highlighted: z.boolean(),
-  })).max(11).optional(),
+  sourcePreview: z
+    .array(
+      z.object({
+        number: z.number().int().positive(),
+        content: z.string().max(500),
+        highlighted: z.boolean(),
+      }),
+    )
+    .max(11)
+    .optional(),
 });
 export const submitAnalysisSchema = z.object({
-  repositoryId: z.union([identifierSchema, z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(64)]).optional(),
+  repositoryId: z
+    .union([
+      identifierSchema,
+      z
+        .string()
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+        .max(64),
+    ])
+    .optional(),
   branch: z.string().trim().min(1).max(255),
   commitSha: z.string().regex(/^[a-f0-9]{40}$/i),
   profile: z.literal('COMPREHENSIVE').default('COMPREHENSIVE'),

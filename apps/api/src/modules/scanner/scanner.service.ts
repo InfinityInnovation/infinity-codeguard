@@ -1,5 +1,10 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import { BadRequestException, Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+  NotFoundException,
+} from '@nestjs/common';
 import { database } from '@codeguard/database';
 import type { ScanSummary, SubmitAnalysisInput } from '@codeguard/contracts';
 import { sanitizeSubmittedPreview } from '../scans/source';
@@ -7,11 +12,22 @@ import { sanitizeSubmittedPreview } from '../scans/source';
 @Injectable()
 export class ScannerService {
   async listTokens(organizationId: string, projectId: string) {
-    const project = await database.project.findFirst({ where: { id: projectId, organizationId }, select: { id: true } });
+    const project = await database.project.findFirst({
+      where: { id: projectId, organizationId },
+      select: { id: true },
+    });
     if (!project) throw new NotFoundException('Project not found');
     const tokens = await database.analysisToken.findMany({
       where: { organizationId, projectId },
-      select: { id: true, name: true, prefix: true, createdAt: true, lastUsedAt: true, expiresAt: true, revokedAt: true },
+      select: {
+        id: true,
+        name: true,
+        prefix: true,
+        createdAt: true,
+        lastUsedAt: true,
+        expiresAt: true,
+        revokedAt: true,
+      },
       orderBy: { createdAt: 'desc' },
     });
     return tokens.map((token) => ({
@@ -23,7 +39,12 @@ export class ScannerService {
     }));
   }
 
-  async revokeToken(organizationId: string, projectId: string, tokenId: string, actorId: string): Promise<void> {
+  async revokeToken(
+    organizationId: string,
+    projectId: string,
+    tokenId: string,
+    actorId: string,
+  ): Promise<void> {
     await database.$transaction(async (tx) => {
       const updated = await tx.analysisToken.updateMany({
         where: { id: tokenId, organizationId, projectId, revokedAt: null },
@@ -130,7 +151,11 @@ export class ScannerService {
           targetType: 'Scan',
           targetId: created.id,
           correlationId: randomUUID(),
-          metadata: { projectId: token.projectId, repositoryId: repository.id, branch: input.branch },
+          metadata: {
+            projectId: token.projectId,
+            repositoryId: repository.id,
+            branch: input.branch,
+          },
         },
       });
       return created;
@@ -150,7 +175,11 @@ export async function resolveScanRepository(
   input: Pick<SubmitAnalysisInput, 'repositoryId' | 'branch'>,
 ): Promise<{ id: string; name: string }> {
   if (input.repositoryId && input.repositoryId !== token.project.slug) {
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(input.repositoryId)) {
+    if (
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(
+        input.repositoryId,
+      )
+    ) {
       throw new BadRequestException('La clé du projet ne correspond pas au jeton d’analyse.');
     }
     const repository = await database.repository.findFirst({
@@ -185,10 +214,23 @@ function digestToken(token: string): string {
 }
 
 export function normalizeSubmittedFindings(findings: SubmitAnalysisInput['findings']) {
-  return [...new Map(findings.map((finding) => {
-    const fingerprint = createHash('sha256')
-      .update(`${finding.ruleId}\0${finding.filePath}\0${finding.startLine}\0${finding.message}`)
-      .digest('hex');
-    return [fingerprint, { ...finding, sourcePreview: sanitizeSubmittedPreview(finding.sourcePreview), fingerprint }] as const;
-  })).values()];
+  return [
+    ...new Map(
+      findings.map((finding) => {
+        const fingerprint = createHash('sha256')
+          .update(
+            `${finding.ruleId}\0${finding.filePath}\0${finding.startLine}\0${finding.message}`,
+          )
+          .digest('hex');
+        return [
+          fingerprint,
+          {
+            ...finding,
+            sourcePreview: sanitizeSubmittedPreview(finding.sourcePreview),
+            fingerprint,
+          },
+        ] as const;
+      }),
+    ).values(),
+  ];
 }

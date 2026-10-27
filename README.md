@@ -36,6 +36,8 @@ See [architecture](docs/architecture/overview.md), [security model](docs/securit
 
 Implemented: pnpm/Turborepo, bilingual Next.js authentication and governance dashboard, NestJS API, validated and revocable sessions, same-origin protection, audit events, tenant-scoped projects and repositories, GitHub App installations for private repositories, BullMQ orchestration, isolated temporary Git checkouts, Semgrep CE execution with general, secrets, OWASP Top 10 and Infrastructure as Code profiles, parsed findings, SARIF/JSON reports, and Compose services. Policies, MFA, SSO, additional scanner engines, and AI features are not implemented.
 
-The CI scanner analyzes an existing local checkout, including private repositories, without asking CodeGuard to clone it. The legacy worker accepts HTTPS repositories on GitHub, GitLab, Bitbucket, and Azure DevOps; private GitHub repositories require a configured GitHub App installation. Credentials embedded in repository URLs are rejected, temporary checkouts are deleted after each job, and source snippets are not persisted.
+The CI scanner analyzes an existing local checkout, including private repositories, without asking CodeGuard to clone it. It uploads bounded source excerpts around findings for the code preview, and the API persists those excerpts with the tenant-scoped findings. The legacy worker accepts HTTPS repositories on GitHub, GitLab, Bitbucket, and Azure DevOps; private GitHub repositories require a configured GitHub App installation. Credentials embedded in repository URLs are rejected, and temporary checkouts are deleted after each job.
+
+The release workflow publishes the API, web, worker, and scanner images to Docker Hub under the `code-guard` name. See the [Docker deployment guide](docs/deployment/docker-compose.md) for required GitHub secrets and production Compose commands.
 
 Licensed under Apache-2.0. Third-party components retain their own licenses.

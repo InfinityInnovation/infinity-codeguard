@@ -35,7 +35,9 @@ export class IntegrationsController {
     const state = z.string().min(20).parse(rawState);
     const installationId = z.string().regex(/^\d+$/).parse(rawInstallationId);
     await this.integrations.completeGitHubInstallation(state, installationId);
-    response.redirect(`${process.env.WEB_ORIGIN ?? 'http://localhost:3000'}/fr/dashboard?view=integrations`);
+    response.redirect(
+      `${process.env.WEB_ORIGIN ?? 'http://localhost:3000'}/fr/dashboard?view=integrations`,
+    );
   }
 
   @Delete()

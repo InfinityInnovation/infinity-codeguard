@@ -62,7 +62,11 @@ export function ProjectWorkspace({
   const tokenQueryKey = workspaceQueryKeys.analysisTokens(organizationId, project.id);
   const tokens = useQuery({
     queryKey: tokenQueryKey,
-    queryFn: () => apiRequest(`/scanner/organizations/${organizationId}/projects/${project.id}/tokens`, analysisTokenSummariesSchema),
+    queryFn: () =>
+      apiRequest(
+        `/scanner/organizations/${organizationId}/projects/${project.id}/tokens`,
+        analysisTokenSummariesSchema,
+      ),
     enabled: canManage && Boolean(organizationId),
   });
   const createToken = useMutation({
@@ -78,11 +82,12 @@ export function ProjectWorkspace({
     },
   });
   const revokeToken = useMutation({
-    mutationFn: (tokenId: string) => apiRequest(
-      `/scanner/organizations/${organizationId}/projects/${project.id}/tokens/${tokenId}`,
-      z.object({ revoked: z.literal(true) }),
-      { method: 'DELETE' },
-    ),
+    mutationFn: (tokenId: string) =>
+      apiRequest(
+        `/scanner/organizations/${organizationId}/projects/${project.id}/tokens/${tokenId}`,
+        z.object({ revoked: z.literal(true) }),
+        { method: 'DELETE' },
+      ),
     onSuccess: async (_result, tokenId) => {
       if (analysisToken?.id === tokenId) setAnalysisToken(undefined);
       await queryClient.invalidateQueries({ queryKey: tokenQueryKey });
@@ -215,19 +220,36 @@ export function ProjectWorkspace({
                 {tokens.isPending && <small>{t('loadingTokens')}</small>}
                 {tokens.error && <small className="error-text">{tokens.error.message}</small>}
                 {tokens.data?.map((token) => {
-                  const inactive = Boolean(token.revokedAt || (token.expiresAt && new Date(token.expiresAt) <= new Date()));
+                  const inactive = Boolean(
+                    token.revokedAt || (token.expiresAt && new Date(token.expiresAt) <= new Date()),
+                  );
                   return (
                     <div key={token.id}>
                       <span>
                         <strong>{token.name}</strong>
                         <code>{token.prefix}…</code>
                       </span>
-                      <small>{token.revokedAt ? t('tokenRevoked') : inactive ? t('tokenExpired') : t('tokenActive')}</small>
-                      {!inactive && <button disabled={revokeToken.isPending} onClick={() => revokeToken.mutate(token.id)}>{t('revokeToken')}</button>}
+                      <small>
+                        {token.revokedAt
+                          ? t('tokenRevoked')
+                          : inactive
+                            ? t('tokenExpired')
+                            : t('tokenActive')}
+                      </small>
+                      {!inactive && (
+                        <button
+                          disabled={revokeToken.isPending}
+                          onClick={() => revokeToken.mutate(token.id)}
+                        >
+                          {t('revokeToken')}
+                        </button>
+                      )}
                     </div>
                   );
                 })}
-                {revokeToken.error && <small className="error-text">{revokeToken.error.message}</small>}
+                {revokeToken.error && (
+                  <small className="error-text">{revokeToken.error.message}</small>
+                )}
               </div>
             )}
           </section>

@@ -11,15 +11,21 @@ export function sanitizeSubmittedPreview(value: unknown): FindingSource['lines']
   if (!parsed.success) return undefined;
   return parsed.data.map((line) => ({
     ...line,
-    content: /secret|password|token|authorization|api[_-]?key|private[_-]?key|BEGIN .* PRIVATE KEY/iu.test(line.content)
-      ? '[contenu masqué : secret possible]'
-      : line.content.slice(0, 500),
+    content:
+      /secret|password|token|authorization|api[_-]?key|private[_-]?key|BEGIN .* PRIVATE KEY/iu.test(
+        line.content,
+      )
+        ? '[contenu masqué : secret possible]'
+        : line.content.slice(0, 500),
   }));
 }
 
 export function githubRawUrl(remoteUrl: string, commitSha: string, filePath: string): URL {
   const remote = new URL(remoteUrl);
-  const segments = remote.pathname.replace(/^\//, '').replace(/\.git$/, '').split('/');
+  const segments = remote.pathname
+    .replace(/^\//, '')
+    .replace(/\.git$/, '')
+    .split('/');
   const cleanPath = filePath.replaceAll('\\', '/').split('/');
   if (
     remote.protocol !== 'https:' ||

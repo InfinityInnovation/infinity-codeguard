@@ -26,10 +26,11 @@ export function AnalysesView({
   const t = useTranslations('dashboard');
   const delta = useQuery({
     queryKey: workspaceQueryKeys.scanDelta(organizationId, projectId, selectedScan?.id),
-    queryFn: () => apiRequest(
-      `/organizations/${organizationId}/projects/${projectId}/scans/${selectedScan?.id}/delta`,
-      scanDeltaSchema,
-    ),
+    queryFn: () =>
+      apiRequest(
+        `/organizations/${organizationId}/projects/${projectId}/scans/${selectedScan?.id}/delta`,
+        scanDeltaSchema,
+      ),
     enabled: Boolean(organizationId && projectId && selectedScan?.status === 'SUCCEEDED'),
   });
   return (
@@ -103,10 +104,22 @@ export function AnalysesView({
                 </div>
                 {delta.data && (
                   <div className="cg-scan-delta">
-                    <span><small>{t('newFindings')}</small><strong>{delta.data.newCount}</strong></span>
-                    <span><small>{t('fixedFindings')}</small><strong>{delta.data.fixedCount}</strong></span>
-                    <span><small>{t('reopenedFindings')}</small><strong>{delta.data.reopenedCount}</strong></span>
-                    <span><small>{t('continuingFindings')}</small><strong>{delta.data.continuingCount}</strong></span>
+                    <span>
+                      <small>{t('newFindings')}</small>
+                      <strong>{delta.data.newCount}</strong>
+                    </span>
+                    <span>
+                      <small>{t('fixedFindings')}</small>
+                      <strong>{delta.data.fixedCount}</strong>
+                    </span>
+                    <span>
+                      <small>{t('reopenedFindings')}</small>
+                      <strong>{delta.data.reopenedCount}</strong>
+                    </span>
+                    <span>
+                      <small>{t('continuingFindings')}</small>
+                      <strong>{delta.data.continuingCount}</strong>
+                    </span>
                   </div>
                 )}
                 <p>{t('openVulnerabilitiesHelp')}</p>

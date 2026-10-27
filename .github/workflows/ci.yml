@@ -1,8 +1,9 @@
 name: CI
 on:
+  workflow_call:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, master]
 permissions: { contents: read }
 jobs:
   validate:

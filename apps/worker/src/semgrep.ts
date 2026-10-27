@@ -69,9 +69,13 @@ export function normalizeCloneError(error: unknown): Error {
     );
   }
   if (detail.includes('Remote branch') && detail.includes('not found')) {
-    return new Error('Branche introuvable : vérifiez la branche par défaut configurée pour ce dépôt.');
+    return new Error(
+      'Branche introuvable : vérifiez la branche par défaut configurée pour ce dépôt.',
+    );
   }
-  return new Error('Impossible de cloner le dépôt. Vérifiez son URL, sa branche et son accessibilité.');
+  return new Error(
+    'Impossible de cloner le dépôt. Vérifiez son URL, sa branche et son accessibilité.',
+  );
 }
 
 export function assertSafeRepositoryUrl(raw: string): URL {

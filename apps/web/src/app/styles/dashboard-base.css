@@ -473,7 +473,9 @@
   white-space: normal;
 }
 @keyframes cg-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 @media (max-width: 1050px) {
   .cg-dashboard-grid {
@@ -807,4 +809,3 @@ article p {
     animation: none !important;
   }
 }
-

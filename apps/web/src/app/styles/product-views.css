@@ -188,9 +188,14 @@
   padding: 12px;
   background: #10253b;
 }
-.cg-scan-delta strong { color: #eaf5fc; font-size: 19px; }
+.cg-scan-delta strong {
+  color: #eaf5fc;
+  font-size: 19px;
+}
 @media (max-width: 680px) {
-  .cg-scan-delta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cg-scan-delta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 .cg-scan-reference {
   display: grid;

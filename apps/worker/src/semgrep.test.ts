@@ -53,7 +53,11 @@ describe('Semgrep adapter', () => {
 
   it('maps every analysis profile to validated Semgrep registry configurations', () => {
     expect(configsForProfile('COMPREHENSIVE')).toEqual([
-      'p/default', 'p/secrets', 'p/owasp-top-ten', 'p/terraform', 'p/dockerfile',
+      'p/default',
+      'p/secrets',
+      'p/owasp-top-ten',
+      'p/terraform',
+      'p/dockerfile',
     ]);
     expect(configsForProfile('STANDARD')).toEqual(['p/default']);
     expect(configsForProfile('SECRETS')).toEqual(['p/secrets']);
@@ -62,7 +66,9 @@ describe('Semgrep adapter', () => {
   });
 
   it('returns a safe actionable message when a private repository cannot be cloned', () => {
-    const error = normalizeCloneError(new Error("fatal: could not read Username for 'https://github.com'"));
+    const error = normalizeCloneError(
+      new Error("fatal: could not read Username for 'https://github.com'"),
+    );
     expect(error.message).toContain('Dépôt inaccessible');
     expect(error.message).not.toContain('/tmp/');
   });

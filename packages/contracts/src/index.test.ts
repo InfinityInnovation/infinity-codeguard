@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { authenticatedUserSchema, organizationSummarySchema, submitAnalysisSchema } from './index.js';
+import {
+  authenticatedUserSchema,
+  organizationSummarySchema,
+  submitAnalysisSchema,
+} from './index.js';
 
 describe('API response contracts', () => {
   it('accepts a valid authenticated user', () => {
@@ -32,8 +36,14 @@ describe('API response contracts', () => {
       findings: [],
     };
     expect(submitAnalysisSchema.parse(submission).profile).toBe('COMPREHENSIVE');
-    expect(submitAnalysisSchema.safeParse({ ...submission, profile: 'STANDARD' }).success).toBe(false);
-    expect(submitAnalysisSchema.safeParse({ ...submission, repositoryId: 'gbp-5b7b88' }).success).toBe(true);
-    expect(submitAnalysisSchema.safeParse({ ...submission, repositoryId: undefined }).success).toBe(true);
+    expect(submitAnalysisSchema.safeParse({ ...submission, profile: 'STANDARD' }).success).toBe(
+      false,
+    );
+    expect(
+      submitAnalysisSchema.safeParse({ ...submission, repositoryId: 'gbp-5b7b88' }).success,
+    ).toBe(true);
+    expect(submitAnalysisSchema.safeParse({ ...submission, repositoryId: undefined }).success).toBe(
+      true,
+    );
   });
 });

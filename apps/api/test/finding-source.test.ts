@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { githubRawUrl, sanitizeSubmittedPreview, sourceWindow } from '../src/modules/scans/source.js';
+import {
+  githubRawUrl,
+  sanitizeSubmittedPreview,
+  sourceWindow,
+} from '../src/modules/scans/source.js';
 
 describe('finding source preview', () => {
   it('builds an immutable GitHub raw URL and rejects traversal', () => {
-    expect(
-      githubRawUrl('https://github.com/acme/app.git', 'a'.repeat(40), 'src/app.ts').href,
-    ).toBe(`https://raw.githubusercontent.com/acme/app/${'a'.repeat(40)}/src/app.ts`);
+    expect(githubRawUrl('https://github.com/acme/app.git', 'a'.repeat(40), 'src/app.ts').href).toBe(
+      `https://raw.githubusercontent.com/acme/app/${'a'.repeat(40)}/src/app.ts`,
+    );
     expect(() =>
       githubRawUrl('https://github.com/acme/app.git', 'a'.repeat(40), '../secret'),
     ).toThrow();
@@ -28,8 +32,10 @@ describe('finding source preview', () => {
   });
 
   it('redacts submitted snippets on the server before storage', () => {
-    expect(sanitizeSubmittedPreview([{ number: 1, content: 'const apiKey = secret;', highlighted: true }])).toEqual([
-      { number: 1, content: '[contenu masqué : secret possible]', highlighted: true },
-    ]);
+    expect(
+      sanitizeSubmittedPreview([
+        { number: 1, content: 'const apiKey = secret;', highlighted: true },
+      ]),
+    ).toEqual([{ number: 1, content: '[contenu masqué : secret possible]', highlighted: true }]);
   });
 });

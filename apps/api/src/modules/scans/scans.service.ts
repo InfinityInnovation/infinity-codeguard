@@ -8,12 +8,7 @@ import type { OnApplicationShutdown } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import IORedis from 'ioredis';
 import { database } from '@codeguard/database';
-import type {
-  FindingSource,
-  FindingSummary,
-  ScanDelta,
-  ScanSummary,
-} from '@codeguard/contracts';
+import type { FindingSource, FindingSummary, ScanDelta, ScanSummary } from '@codeguard/contracts';
 import type { z } from 'zod';
 import { updateFindingStatusSchema } from '@codeguard/contracts';
 import { loadFindingSource, sanitizeSubmittedPreview } from './source';
@@ -71,28 +66,39 @@ export class ScansService implements OnApplicationShutdown {
       where: { organizationId, projectId, scanId },
       select: { fingerprint: true },
     });
-    if (!previous) return classifyScanFindings(scanId, null, currentFindings.map((item) => item.fingerprint), [], []);
+    if (!previous)
+      return classifyScanFindings(
+        scanId,
+        null,
+        currentFindings.map((item) => item.fingerprint),
+        [],
+        [],
+      );
     const previousFindings = await database.finding.findMany({
       where: { organizationId, projectId, scanId: previous.id },
       select: { fingerprint: true },
     });
     const previousSet = new Set(previousFindings.map((item) => item.fingerprint));
-    const candidates = [...new Set(currentFindings.map((item) => item.fingerprint))].filter((fingerprint) => !previousSet.has(fingerprint));
-    const historical = candidates.length ? await database.finding.findMany({
-      where: {
-        organizationId,
-        projectId,
-        fingerprint: { in: candidates },
-        scan: {
-          repositoryId: scan.repositoryId,
-          branch: scan.branch,
-          status: 'SUCCEEDED',
-          queuedAt: { lt: previous.queuedAt },
-        },
-      },
-      select: { fingerprint: true },
-      distinct: ['fingerprint'],
-    }) : [];
+    const candidates = [...new Set(currentFindings.map((item) => item.fingerprint))].filter(
+      (fingerprint) => !previousSet.has(fingerprint),
+    );
+    const historical = candidates.length
+      ? await database.finding.findMany({
+          where: {
+            organizationId,
+            projectId,
+            fingerprint: { in: candidates },
+            scan: {
+              repositoryId: scan.repositoryId,
+              branch: scan.branch,
+              status: 'SUCCEEDED',
+              queuedAt: { lt: previous.queuedAt },
+            },
+          },
+          select: { fingerprint: true },
+          distinct: ['fingerprint'],
+        })
+      : [];
     return classifyScanFindings(
       scanId,
       previous.id,
@@ -120,10 +126,17 @@ export class ScansService implements OnApplicationShutdown {
       where: { organizationId, projectId, repositoryId, status: { in: ['QUEUED', 'RUNNING'] } },
       select: { id: true },
     });
-    if (activeScan) throw new ConflictException('An analysis is already running for this repository');
+    if (activeScan)
+      throw new ConflictException('An analysis is already running for this repository');
     const scan = await database.$transaction(async (tx) => {
       const created = await tx.scan.create({
-        data: { organizationId, projectId, repositoryId, profile, branch: branch ?? repository.defaultBranch },
+        data: {
+          organizationId,
+          projectId,
+          repositoryId,
+          profile,
+          branch: branch ?? repository.defaultBranch,
+        },
       });
       await tx.auditEvent.create({
         data: {
@@ -133,7 +146,13 @@ export class ScansService implements OnApplicationShutdown {
           targetType: 'Scan',
           targetId: created.id,
           correlationId: requestCorrelationId,
-          metadata: { projectId, repositoryId, scanner: 'semgrep', profile, branch: branch ?? repository.defaultBranch },
+          metadata: {
+            projectId,
+            repositoryId,
+            scanner: 'semgrep',
+            profile,
+            branch: branch ?? repository.defaultBranch,
+          },
         },
       });
       return created;
@@ -228,7 +247,10 @@ export class ScansService implements OnApplicationShutdown {
     const summary = toSummary(scan);
     const findings = await this.findings(organizationId, projectId, scanId);
     return {
-      body: format === 'sarif' ? buildSarifReport(summary, findings) : buildJsonReport(summary, findings),
+      body:
+        format === 'sarif'
+          ? buildSarifReport(summary, findings)
+          : buildJsonReport(summary, findings),
       filename: `${scan.repository.name}-${scan.id}.${format === 'sarif' ? 'sarif' : 'json'}`,
     };
   }
@@ -243,7 +265,8 @@ export class ScansService implements OnApplicationShutdown {
       where: { id: findingId, scanId, organizationId, projectId },
       include: { scan: { include: { repository: true } } },
     });
-    if (!finding || !finding.scan.commitSha) throw new NotFoundException('Finding source not found');
+    if (!finding || !finding.scan.commitSha)
+      throw new NotFoundException('Finding source not found');
     const storedLines = sanitizeSubmittedPreview(finding.sourcePreview);
     if (storedLines?.length) {
       return {

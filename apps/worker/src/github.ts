@@ -30,7 +30,10 @@ export async function githubInstallationToken(
   const config = configuration();
   const installation = await database.gitHubInstallation.findUnique({ where: { organizationId } });
   if (!config || !installation || installation.suspendedAt) return null;
-  const repositoryName = repositoryUrl.pathname.replace(/^\//, '').replace(/\.git$/, '').split('/')[1];
+  const repositoryName = repositoryUrl.pathname
+    .replace(/^\//, '')
+    .replace(/\.git$/, '')
+    .split('/')[1];
   if (!repositoryName) throw new Error('Nom du dépôt GitHub invalide.');
   const response = await fetch(
     `https://api.github.com/app/installations/${installation.installationId}/access_tokens`,

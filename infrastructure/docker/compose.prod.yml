@@ -1,16 +1,29 @@
+name: code-guard
 services:
   api:
+    image: ${CODE_GUARD_IMAGE_NAMESPACE:?CODE_GUARD_IMAGE_NAMESPACE is required}/code-guard-api:${CODE_GUARD_IMAGE_TAG:?CODE_GUARD_IMAGE_TAG is required}
+    pull_policy: always
     deploy: { resources: { limits: { cpus: '2', memory: 2G }, reservations: { memory: 256M } } }
     read_only: true
     tmpfs: [/tmp]
     security_opt: [no-new-privileges:true]
   worker:
+    image: ${CODE_GUARD_IMAGE_NAMESPACE:?CODE_GUARD_IMAGE_NAMESPACE is required}/code-guard-worker:${CODE_GUARD_IMAGE_TAG:?CODE_GUARD_IMAGE_TAG is required}
+    pull_policy: always
     deploy: { resources: { limits: { cpus: '4', memory: 4G }, reservations: { memory: 512M } } }
     read_only: true
     tmpfs: [/tmp]
     security_opt: [no-new-privileges:true]
   web:
+    image: ${CODE_GUARD_IMAGE_NAMESPACE:?CODE_GUARD_IMAGE_NAMESPACE is required}/code-guard-web:${CODE_GUARD_IMAGE_TAG:?CODE_GUARD_IMAGE_TAG is required}
+    pull_policy: always
     deploy: { resources: { limits: { cpus: '1', memory: 1G }, reservations: { memory: 128M } } }
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+  scanner:
+    image: ${CODE_GUARD_IMAGE_NAMESPACE:?CODE_GUARD_IMAGE_NAMESPACE is required}/code-guard-scanner:${CODE_GUARD_IMAGE_TAG:?CODE_GUARD_IMAGE_TAG is required}
+    pull_policy: always
     read_only: true
     tmpfs: [/tmp]
     security_opt: [no-new-privileges:true]
