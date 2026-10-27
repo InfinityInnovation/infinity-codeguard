@@ -1,10 +1,11 @@
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { chmod, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { promisify } from 'node:util';
 import { z } from 'zod';
+import { githubInstallationToken } from './github.js';
 
 const exec = promisify(execFile);
 const allowedGitHosts = new Set(['github.com', 'gitlab.com', 'bitbucket.org', 'dev.azure.com']);
@@ -39,6 +40,7 @@ export type ParsedFinding = {
 };
 
 export type ScanProfile =
+  | 'COMPREHENSIVE'
   | 'STANDARD'
   | 'SECRETS'
   | 'OWASP_TOP_TEN'
@@ -46,6 +48,8 @@ export type ScanProfile =
 
 export function configsForProfile(profile: ScanProfile): string[] {
   switch (profile) {
+    case 'COMPREHENSIVE':
+      return ['p/default', 'p/secrets', 'p/owasp-top-ten', 'p/terraform', 'p/dockerfile'];
     case 'SECRETS':
       return ['p/secrets'];
     case 'OWASP_TOP_TEN':
@@ -55,6 +59,19 @@ export function configsForProfile(profile: ScanProfile): string[] {
     default:
       return ['p/default'];
   }
+}
+
+export function normalizeCloneError(error: unknown): Error {
+  const detail = error instanceof Error ? error.message : '';
+  if (detail.includes('could not read Username') || detail.includes('Repository not found')) {
+    return new Error(
+      'Dépôt inaccessible : vérifiez que le dépôt est public, que l’URL et la branche sont correctes, ou configurez une connexion GitHub autorisée pour un dépôt privé.',
+    );
+  }
+  if (detail.includes('Remote branch') && detail.includes('not found')) {
+    return new Error('Branche introuvable : vérifiez la branche par défaut configurée pour ce dépôt.');
+  }
+  return new Error('Impossible de cloner le dépôt. Vérifiez son URL, sa branche et son accessibilité.');
 }
 
 export function assertSafeRepositoryUrl(raw: string): URL {
@@ -73,7 +90,7 @@ export function assertSafeRepositoryUrl(raw: string): URL {
 
 export function parseSemgrepOutput(raw: string, checkoutDirectory: string): ParsedFinding[] {
   const output = semgrepOutputSchema.parse(JSON.parse(raw));
-  return output.results.map((result) => {
+  const findings = output.results.map((result) => {
     const filePath = relative(checkoutDirectory, result.path).replaceAll('\\', '/');
     const impact = result.extra.metadata?.impact;
     const severity = mapSeverity(typeof impact === 'string' ? impact : result.extra.severity);
@@ -90,38 +107,59 @@ export function parseSemgrepOutput(raw: string, checkoutDirectory: string): Pars
       fingerprint,
     };
   });
+  return [...new Map(findings.map((finding) => [finding.fingerprint, finding])).values()];
 }
 
-export async function runSemgrepScan(remoteUrl: string, branch: string, profile: ScanProfile) {
+export async function runSemgrepScan(
+  remoteUrl: string,
+  branch: string,
+  profile: ScanProfile,
+  organizationId: string,
+) {
   const safeUrl = assertSafeRepositoryUrl(remoteUrl);
   const workspace = await mkdtemp(join(tmpdir(), 'codeguard-scan-'));
   const checkout = join(workspace, 'repository');
   const outputFile = join(workspace, 'semgrep.json');
-  const environment = {
-    ...process.env,
-    GIT_CONFIG_COUNT: '2',
-    GIT_CONFIG_KEY_0: 'protocol.file.allow',
-    GIT_CONFIG_VALUE_0: 'never',
-    GIT_CONFIG_KEY_1: 'credential.helper',
-    GIT_CONFIG_VALUE_1: '',
-    GIT_TERMINAL_PROMPT: '0',
-  };
+  const askPassFile = join(workspace, 'git-askpass.sh');
   try {
-    await exec(
-      'git',
-      [
-        'clone',
-        '--depth',
-        '1',
-        '--single-branch',
-        '--branch',
-        branch,
-        '--',
-        safeUrl.href,
-        checkout,
-      ],
-      { env: environment, timeout: 120_000, maxBuffer: 2_000_000 },
-    );
+    const githubToken = await githubInstallationToken(organizationId, safeUrl);
+    if (githubToken) {
+      await writeFile(
+        askPassFile,
+        '#!/bin/sh\ncase "$1" in *Username*) printf "%s\\n" x-access-token ;; *) printf "%s\\n" "$CODEGUARD_GIT_TOKEN" ;; esac\n',
+        'utf8',
+      );
+      await chmod(askPassFile, 0o700);
+    }
+    const environment = {
+      ...process.env,
+      GIT_CONFIG_COUNT: '2',
+      GIT_CONFIG_KEY_0: 'protocol.file.allow',
+      GIT_CONFIG_VALUE_0: 'never',
+      GIT_CONFIG_KEY_1: 'credential.helper',
+      GIT_CONFIG_VALUE_1: '',
+      GIT_TERMINAL_PROMPT: '0',
+      ...(githubToken ? { GIT_ASKPASS: askPassFile, CODEGUARD_GIT_TOKEN: githubToken } : {}),
+    };
+    try {
+      await exec(
+        'git',
+        [
+          'clone',
+          '--depth',
+          '1',
+          '--single-branch',
+          '--branch',
+          branch,
+          '--',
+          safeUrl.href,
+          checkout,
+        ],
+        { env: environment, timeout: 120_000, maxBuffer: 2_000_000 },
+      );
+    } catch (error: unknown) {
+      throw normalizeCloneError(error);
+    }
     const { stdout: commitSha } = await exec('git', ['-C', checkout, 'rev-parse', 'HEAD'], {
       env: environment,
       timeout: 10_000,

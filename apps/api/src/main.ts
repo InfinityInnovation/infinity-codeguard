@@ -1,5 +1,6 @@
 import { VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
@@ -9,7 +10,8 @@ import { GlobalErrorFilter } from './common/global-error.filter';
 
 async function bootstrap(): Promise<void> {
   const env = parseEnvironment(process.env);
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true });
+  app.useBodyParser('json', { limit: '5mb' });
   app.use(helmet());
   app.use(cookieParser());
   app.enableCors({

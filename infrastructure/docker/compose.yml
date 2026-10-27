@@ -55,6 +55,10 @@ services:
         REDIS_URL: '${REDIS_URL:?REDIS_URL is required}',
         SESSION_SECRET: '${SESSION_SECRET:?SESSION_SECRET is required}',
         WEB_ORIGIN: '${WEB_ORIGIN:?WEB_ORIGIN is required}',
+        GITHUB_APP_ID: '${GITHUB_APP_ID:-}',
+        GITHUB_APP_SLUG: '${GITHUB_APP_SLUG:-}',
+        GITHUB_APP_PRIVATE_KEY_BASE64: '${GITHUB_APP_PRIVATE_KEY_BASE64:-}',
+        GITHUB_APP_STATE_SECRET: '${GITHUB_APP_STATE_SECRET:-}',
       }
     networks: [edge, data]
     depends_on: { postgres: { condition: service_healthy }, redis: { condition: service_healthy } }
@@ -76,10 +80,24 @@ services:
         SESSION_SECRET: '${SESSION_SECRET:?SESSION_SECRET is required}',
         WEB_ORIGIN: '${WEB_ORIGIN:?WEB_ORIGIN is required}',
         WORKER_CONCURRENCY: 2,
+        GITHUB_APP_ID: '${GITHUB_APP_ID:-}',
+        GITHUB_APP_PRIVATE_KEY_BASE64: '${GITHUB_APP_PRIVATE_KEY_BASE64:-}',
       }
     networks: [data, scanner]
     depends_on: { postgres: { condition: service_healthy }, redis: { condition: service_healthy } }
     restart: unless-stopped
+  scanner:
+    profiles: [scanner]
+    build: { context: ../.., dockerfile: scanners/codeguard/Dockerfile }
+    environment:
+      {
+        CG_TOKEN: '${CG_TOKEN:-}',
+        CG_HOST_URL: '${CG_HOST_URL:-http://web:3000}',
+        CG_GIT_SAFE_DIRECTORY: /workspace,
+        CG_BRANCH: '${CG_BRANCH:-}',
+      }
+    volumes: ['${CG_PROJECT_PATH:-../..}:/workspace:ro']
+    networks: [edge]
   web:
     build: { context: ../.., dockerfile: apps/web/Dockerfile }
     environment:

@@ -35,6 +35,7 @@ enum ScanStatus {
 }
 
 enum ScanProfile {
+  COMPREHENSIVE
   STANDARD
   SECRETS
   OWASP_TOP_TEN
@@ -87,6 +88,22 @@ model Organization {
   scans        Scan[]
   findings     Finding[]
   auditEvents  AuditEvent[]
+  githubInstallation GitHubInstallation?
+  analysisTokens AnalysisToken[]
+}
+
+model GitHubInstallation {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @unique @db.Uuid
+  installationId BigInt       @unique
+  accountLogin   String       @db.VarChar(100)
+  repositorySelection String  @db.VarChar(20)
+  suspendedAt    DateTime?    @db.Timestamptz(6)
+  createdAt      DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime     @updatedAt @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, suspendedAt])
 }
 
 model Membership {
@@ -127,9 +144,27 @@ model Project {
   repositories   Repository[]
   scans          Scan[]
   findings       Finding[]
+  analysisTokens AnalysisToken[]
 
   @@unique([organizationId, slug])
   @@index([organizationId, createdAt])
+}
+
+model AnalysisToken {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  projectId      String       @db.Uuid
+  name           String       @db.VarChar(100)
+  prefix         String       @db.Char(12)
+  digest         String       @unique @db.Char(64)
+  lastUsedAt     DateTime?    @db.Timestamptz(6)
+  expiresAt      DateTime?    @db.Timestamptz(6)
+  revokedAt      DateTime?    @db.Timestamptz(6)
+  createdAt      DateTime     @default(now()) @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, projectId, revokedAt])
 }
 
 model Repository {
@@ -159,6 +194,7 @@ model Scan {
   status         ScanStatus   @default(QUEUED)
   scanner        String       @default("semgrep") @db.VarChar(40)
   profile        ScanProfile  @default(STANDARD)
+  branch         String       @default("main") @db.VarChar(255)
   commitSha      String?      @db.Char(40)
   errorMessage   String?      @db.VarChar(500)
   findingCount   Int          @default(0)
@@ -193,6 +229,7 @@ model Finding {
   filePath       String          @db.VarChar(1000)
   startLine      Int
   endLine        Int
+  sourcePreview  Json?
   fingerprint    String          @db.Char(64)
   createdAt      DateTime        @default(now()) @db.Timestamptz(6)
   organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Restrict)

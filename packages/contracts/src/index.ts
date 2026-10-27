@@ -90,19 +90,79 @@ export const repositorySummarySchema = z.object({
 });
 export type RepositorySummary = z.infer<typeof repositorySummarySchema>;
 
+export const githubIntegrationSchema = z.object({
+  configured: z.boolean(),
+  connected: z.boolean(),
+  accountLogin: z.string().nullable(),
+  repositorySelection: z.enum(['all', 'selected']).nullable(),
+  suspended: z.boolean(),
+  installUrl: z.string().url().nullable(),
+});
+export type GitHubIntegration = z.infer<typeof githubIntegrationSchema>;
+
 export const scanStatusSchema = z.enum(['QUEUED', 'RUNNING', 'SUCCEEDED', 'FAILED']);
 export const scanProfileSchema = z.enum([
+  'COMPREHENSIVE',
   'STANDARD',
   'SECRETS',
   'OWASP_TOP_TEN',
   'INFRASTRUCTURE_AS_CODE',
 ]);
+export type ScanProfile = z.infer<typeof scanProfileSchema>;
 export const createScanSchema = z.object({
   repositoryId: identifierSchema,
-  profile: scanProfileSchema.default('STANDARD'),
+  profile: z.literal('COMPREHENSIVE').default('COMPREHENSIVE'),
+  branch: z.string().trim().min(1).max(255).optional(),
 });
 export type CreateScanInput = z.infer<typeof createScanSchema>;
 export const findingSeveritySchema = z.enum(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO']);
+export const createAnalysisTokenSchema = z.object({
+  name: z.string().trim().min(1).max(100),
+  expiresInDays: z.number().int().min(1).max(365).default(90),
+});
+export const analysisTokenCreatedSchema = z.object({
+  id: identifierSchema,
+  name: z.string(),
+  prefix: z.string(),
+  token: z.string(),
+  expiresAt: z.string().datetime(),
+});
+export const analysisTokenSummarySchema = z.object({
+  id: identifierSchema,
+  name: z.string(),
+  prefix: z.string(),
+  createdAt: z.string().datetime(),
+  lastUsedAt: z.string().datetime().nullable(),
+  expiresAt: z.string().datetime().nullable(),
+  revokedAt: z.string().datetime().nullable(),
+});
+export const analysisTokenSummariesSchema = z.array(analysisTokenSummarySchema);
+export const scannerFindingSchema = z.object({
+  ruleId: z.string().min(1).max(255),
+  severity: findingSeveritySchema,
+  message: z.string().min(1).max(2000),
+  filePath: z
+    .string()
+    .min(1)
+    .max(1000)
+    .refine((path) => !path.startsWith('/') && !path.split('/').includes('..'), 'Unsafe file path'),
+  startLine: z.number().int().positive(),
+  endLine: z.number().int().positive(),
+  sourcePreview: z.array(z.object({
+    number: z.number().int().positive(),
+    content: z.string().max(500),
+    highlighted: z.boolean(),
+  })).max(11).optional(),
+});
+export const submitAnalysisSchema = z.object({
+  repositoryId: z.union([identifierSchema, z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(64)]).optional(),
+  branch: z.string().trim().min(1).max(255),
+  commitSha: z.string().regex(/^[a-f0-9]{40}$/i),
+  profile: z.literal('COMPREHENSIVE').default('COMPREHENSIVE'),
+  scannerVersion: z.string().trim().min(1).max(40),
+  findings: z.array(scannerFindingSchema).max(10_000),
+});
+export type SubmitAnalysisInput = z.infer<typeof submitAnalysisSchema>;
 export const findingStatusSchema = z.enum([
   'OPEN',
   'CONFIRMED',
@@ -120,6 +180,7 @@ export const scanSummarySchema = z.object({
   status: scanStatusSchema,
   scanner: z.string(),
   profile: scanProfileSchema,
+  branch: z.string(),
   commitSha: z.string().nullable(),
   findingCount: z.number().int().nonnegative(),
   criticalCount: z.number().int().nonnegative(),
@@ -134,6 +195,15 @@ export const scanSummarySchema = z.object({
   completedAt: z.string().datetime().nullable(),
 });
 export type ScanSummary = z.infer<typeof scanSummarySchema>;
+export const scanDeltaSchema = z.object({
+  scanId: identifierSchema,
+  previousScanId: identifierSchema.nullable(),
+  newCount: z.number().int().nonnegative(),
+  fixedCount: z.number().int().nonnegative(),
+  continuingCount: z.number().int().nonnegative(),
+  reopenedCount: z.number().int().nonnegative(),
+});
+export type ScanDelta = z.infer<typeof scanDeltaSchema>;
 
 export const findingSummarySchema = z.object({
   id: identifierSchema,

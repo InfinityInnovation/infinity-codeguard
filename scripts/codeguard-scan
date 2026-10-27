@@ -1,0 +1,23 @@
+#!/bin/sh
+set -eu
+
+if [ "$#" -ne 1 ] || [ ! -d "$1" ]; then
+  printf '%s\n' 'Usage: CG_TOKEN=... ./scripts/codeguard-scan /chemin/vers/projet' >&2
+  exit 1
+fi
+if [ -z "${CG_TOKEN:-}" ]; then
+  printf '%s\n' 'CG_TOKEN est requis ; récupérez un jeton dans la page du projet.' >&2
+  exit 1
+fi
+
+codeguard_project_path=$(cd "$1" && pwd -P)
+codeguard_root=$(cd "$(dirname "$0")/.." && pwd -P)
+export CG_PROJECT_PATH="$codeguard_project_path"
+
+docker compose \
+  --project-directory "$codeguard_root" \
+  --env-file "$codeguard_root/.env" \
+  -f "$codeguard_root/infrastructure/docker/compose.yml" \
+  -f "$codeguard_root/infrastructure/docker/compose.dev.yml" \
+  --profile scanner \
+  run --rm --no-deps scanner

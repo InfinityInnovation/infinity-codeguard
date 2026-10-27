@@ -33,6 +33,8 @@
     "vulnerabilities": "Vulnérabilités",
     "compliance": "Conformité",
     "reports": "Rapports",
+    "integrations": "Intégrations",
+    "configuration": "Configuration",
     "enginePending": "Moteur actif",
     "scannerActive": "Moteur Semgrep actif",
     "noAnalysisData": "Aucune donnée d’analyse",
@@ -64,6 +66,7 @@
     "addRepository": "Ajouter un dépôt",
     "repositoryName": "Nom du dépôt",
     "defaultBranch": "Branche par défaut",
+    "branch": "Branche analysée",
     "other": "Autre",
     "add": "Ajouter",
     "emptyRepositories": "Aucun dépôt rattaché",
@@ -72,6 +75,65 @@
     "scannerReady": "Semgrep Community Edition est actif. Les analyses sont exécutées dans un espace temporaire isolé.",
     "startScan": "Lancer l’analyse",
     "scanQueued": "Mise en file…",
+    "sourceConnections": "Connexions aux sources",
+    "sourceConnectionsHelp": "Autorisez l’accès contrôlé aux dépôts privés de votre organisation.",
+    "githubIntegrationHelp": "Analysez les dépôts publics et privés autorisés sans stocker de mot de passe Git ni de jeton personnel.",
+    "connected": "Connecté",
+    "notConnected": "Non connecté",
+    "githubAccount": "Compte GitHub",
+    "repositoryAccess": "Accès aux dépôts",
+    "allRepositories": "Tous les dépôts autorisés",
+    "selectedRepositories": "Dépôts sélectionnés",
+    "connectGithub": "Connecter GitHub",
+    "disconnect": "Déconnecter",
+    "configurationRequired": "Configuration serveur requise",
+    "githubConfigurationHelp": "Renseignez l’identifiant, le slug, la clé privée et le secret d’état de la GitHub App dans l’environnement Docker.",
+    "leastPrivilege": "Accès en lecture seule",
+    "leastPrivilegeHelp": "CodeGuard demande uniquement Contents: read et crée un jeton temporaire limité au dépôt analysé.",
+    "loadingIntegration": "Chargement de l’intégration…",
+    "projectSecurityWorkspace": "Pilotage de la qualité et de la sécurité du code pour ce projet.",
+    "projectNavigation": "Navigation du projet",
+    "projectTabs": { "overview": "Vue d’ensemble", "issues": "Problèmes", "measures": "Mesures", "activity": "Activité" },
+    "onLatestAnalysis": "sur les dernières analyses",
+    "requiresAttention": "à traiter en priorité",
+    "analysisReliability": "Fiabilité des analyses",
+    "successfulScans": "{completed} réussies sur {total}",
+    "repositoryPortfolio": "Dépôts du projet",
+    "repositoryPortfolioHelp": "État du Quality Gate et dernière révision analysée.",
+    "securityMeasures": "Mesures de sécurité",
+    "securityMeasuresHelp": "Résultats consolidés des dernières analyses de chaque dépôt.",
+    "analysisHealth": "Santé des analyses",
+    "completedAnalyses": "Analyses terminées",
+    "failedAnalyses": "Analyses échouées",
+    "lastProfile": "Dernier profil utilisé",
+    "lastCommit": "Dernier commit analysé",
+    "ciAnalysis": "Analyse depuis CI/CD",
+    "ciAnalysisHelp": "Une seule exécution analyse le code, les secrets, l’OWASP Top 10 et l’infrastructure, puis transmet les résultats et de courts extraits de code à CodeGuard.",
+    "generateAnalysisToken": "Générer un jeton d’analyse",
+    "tokenShownOnce": "Copiez ce jeton maintenant : il ne sera plus affiché.",
+    "analysisTokens": "Jetons d’analyse",
+    "newFindings": "Nouveaux",
+    "fixedFindings": "Corrigés",
+    "reopenedFindings": "Réapparus",
+    "continuingFindings": "Toujours présents",
+    "loadingTokens": "Chargement des jetons…",
+    "tokenActive": "Actif",
+    "tokenExpired": "Expiré",
+    "tokenRevoked": "Révoqué",
+    "revokeToken": "Révoquer",
+    "scannerStepToken": "Jeton projet",
+    "scannerStepAnalyze": "Analyse locale",
+    "scannerStepUpload": "Envoi du rapport",
+    "scannerStepGate": "Quality Gate",
+    "scanFromCi": "Les analyses sont déclenchées depuis le scanner CI/CD.",
+    "analysisProfile": "Profil d’analyse",
+    "profile": {
+      "COMPREHENSIVE": "Analyse complète",
+      "STANDARD": "Sécurité générale",
+      "SECRETS": "Secrets exposés",
+      "OWASP_TOP_TEN": "OWASP Top 10",
+      "INFRASTRUCTURE_AS_CODE": "Infrastructure as Code"
+    },
     "analysisActivity": "Activité des analyses",
     "analysisActivityHelp": "Progression, erreurs et vulnérabilités détectées par Semgrep.",
     "analysisProgressHelp": "Le dépôt est cloné dans un espace isolé puis inspecté par Semgrep.",
@@ -97,7 +159,7 @@
     ,"sourceContext": "Code concerné"
     ,"openOnGithub": "Ouvrir sur GitHub"
     ,"loadingSource": "Chargement du code…"
-    ,"sourceUnavailable": "L’extrait de code n’est pas disponible pour ce dépôt."
+    ,"sourceUnavailable": "L’extrait de code n’est pas disponible pour cette analyse. Relancez le scan avec le scanner à jour pour enregistrer le code concerné."
     ,"technicalDetail": "Message technique Semgrep"
     ,"qualityGates": "Quality Gates"
     ,"qualityGateTitle": "Contrôle qualité de sécurité"
@@ -144,10 +206,12 @@
     ,"views": {
       "dashboard": { "title": "Tableau de bord", "subtitle": "Vue synthétique de la sécurité de vos projets." },
       "projects": { "title": "Projets et dépôts", "subtitle": "Gérez les sources de code rattachées à votre organisation." },
+      "project": { "title": "Projet", "subtitle": "Analyse détaillée de la qualité et de la sécurité du code." },
       "analyses": { "title": "Analyses", "subtitle": "Suivez l’exécution de Semgrep et l’historique des scans." },
       "vulnerabilities": { "title": "Vulnérabilités", "subtitle": "Examinez les problèmes détectés lors de la dernière analyse." },
       "quality": { "title": "Quality Gates", "subtitle": "Contrôlez si vos dépôts respectent les exigences de sécurité." }
       ,"reports": { "title": "Rapports", "subtitle": "Exportez et partagez les résultats de vos analyses de sécurité." }
+      ,"integrations": { "title": "Intégrations", "subtitle": "Connectez vos fournisseurs Git sans exposer de secrets permanents." }
     }
     ,"severity": { "CRITICAL": "Critique", "HIGH": "Élevée", "MEDIUM": "Moyenne", "LOW": "Faible", "INFO": "Information" }
     ,"finding": {

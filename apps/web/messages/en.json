@@ -33,6 +33,8 @@
     "vulnerabilities": "Vulnerabilities",
     "compliance": "Compliance",
     "reports": "Reports",
+    "integrations": "Integrations",
+    "configuration": "Configuration",
     "enginePending": "Engine active",
     "scannerActive": "Semgrep engine active",
     "noAnalysisData": "No analysis data",
@@ -64,6 +66,7 @@
     "addRepository": "Add repository",
     "repositoryName": "Repository name",
     "defaultBranch": "Default branch",
+    "branch": "Analyzed branch",
     "other": "Other",
     "add": "Add",
     "emptyRepositories": "No repository attached",
@@ -72,6 +75,65 @@
     "scannerReady": "Semgrep Community Edition is active. Scans run in an isolated temporary workspace.",
     "startScan": "Start scan",
     "scanQueued": "Queueing…",
+    "sourceConnections": "Source connections",
+    "sourceConnectionsHelp": "Authorize controlled access to your organization's private repositories.",
+    "githubIntegrationHelp": "Scan approved public and private repositories without storing Git passwords or personal tokens.",
+    "connected": "Connected",
+    "notConnected": "Not connected",
+    "githubAccount": "GitHub account",
+    "repositoryAccess": "Repository access",
+    "allRepositories": "All approved repositories",
+    "selectedRepositories": "Selected repositories",
+    "connectGithub": "Connect GitHub",
+    "disconnect": "Disconnect",
+    "configurationRequired": "Server configuration required",
+    "githubConfigurationHelp": "Set the GitHub App ID, slug, private key and state secret in the Docker environment.",
+    "leastPrivilege": "Read-only access",
+    "leastPrivilegeHelp": "CodeGuard requests Contents: read only and creates a temporary token restricted to the scanned repository.",
+    "loadingIntegration": "Loading integration…",
+    "projectSecurityWorkspace": "Code quality and security control center for this project.",
+    "projectNavigation": "Project navigation",
+    "projectTabs": { "overview": "Overview", "issues": "Issues", "measures": "Measures", "activity": "Activity" },
+    "onLatestAnalysis": "across latest analyses",
+    "requiresAttention": "requires priority action",
+    "analysisReliability": "Analysis reliability",
+    "successfulScans": "{completed} successful out of {total}",
+    "repositoryPortfolio": "Project repositories",
+    "repositoryPortfolioHelp": "Quality Gate status and latest analyzed revision.",
+    "securityMeasures": "Security measures",
+    "securityMeasuresHelp": "Consolidated results from each repository's latest analysis.",
+    "analysisHealth": "Analysis health",
+    "completedAnalyses": "Completed analyses",
+    "failedAnalyses": "Failed analyses",
+    "lastProfile": "Latest profile used",
+    "lastCommit": "Latest analyzed commit",
+    "ciAnalysis": "CI/CD analysis",
+    "ciAnalysisHelp": "One execution scans code, secrets, OWASP Top 10 and infrastructure together, then sends findings and short code excerpts to CodeGuard.",
+    "generateAnalysisToken": "Generate analysis token",
+    "tokenShownOnce": "Copy this token now: it will not be shown again.",
+    "analysisTokens": "Analysis tokens",
+    "newFindings": "New",
+    "fixedFindings": "Fixed",
+    "reopenedFindings": "Reopened",
+    "continuingFindings": "Still present",
+    "loadingTokens": "Loading tokens…",
+    "tokenActive": "Active",
+    "tokenExpired": "Expired",
+    "tokenRevoked": "Revoke",
+    "revokeToken": "Revoke",
+    "scannerStepToken": "Project token",
+    "scannerStepAnalyze": "Local analysis",
+    "scannerStepUpload": "Report upload",
+    "scannerStepGate": "Quality Gate",
+    "scanFromCi": "Analyses are triggered by the CI/CD scanner.",
+    "analysisProfile": "Analysis profile",
+    "profile": {
+      "COMPREHENSIVE": "Comprehensive analysis",
+      "STANDARD": "General security",
+      "SECRETS": "Exposed secrets",
+      "OWASP_TOP_TEN": "OWASP Top 10",
+      "INFRASTRUCTURE_AS_CODE": "Infrastructure as Code"
+    },
     "analysisActivity": "Analysis activity",
     "analysisActivityHelp": "Progress, errors and vulnerabilities detected by Semgrep.",
     "analysisProgressHelp": "The repository is cloned into an isolated workspace and inspected by Semgrep.",
@@ -97,7 +159,7 @@
     ,"sourceContext": "Affected code"
     ,"openOnGithub": "Open on GitHub"
     ,"loadingSource": "Loading source…"
-    ,"sourceUnavailable": "The source preview is unavailable for this repository."
+    ,"sourceUnavailable": "No source excerpt was saved for this analysis. Run the scan again with the updated scanner to capture the affected code."
     ,"technicalDetail": "Semgrep technical message"
     ,"qualityGates": "Quality Gates"
     ,"qualityGateTitle": "Security quality gate"
@@ -144,10 +206,12 @@
     ,"views": {
       "dashboard": { "title": "Dashboard", "subtitle": "A concise view of your projects' security." },
       "projects": { "title": "Projects and repositories", "subtitle": "Manage the source repositories connected to your organization." },
+      "project": { "title": "Project", "subtitle": "Detailed code quality and security analysis." },
       "analyses": { "title": "Analyses", "subtitle": "Track Semgrep execution and scan history." },
       "vulnerabilities": { "title": "Vulnerabilities", "subtitle": "Review issues detected by the latest analysis." },
       "quality": { "title": "Quality Gates", "subtitle": "Check whether repositories meet your security requirements." }
       ,"reports": { "title": "Reports", "subtitle": "Export and share your security analysis results." }
+      ,"integrations": { "title": "Integrations", "subtitle": "Connect Git providers without exposing permanent secrets." }
     }
     ,"severity": { "CRITICAL": "Critical", "HIGH": "High", "MEDIUM": "Medium", "LOW": "Low", "INFO": "Information" }
     ,"finding": {

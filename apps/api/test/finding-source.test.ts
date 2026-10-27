@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { githubRawUrl, sourceWindow } from '../src/modules/scans/source.js';
+import { githubRawUrl, sanitizeSubmittedPreview, sourceWindow } from '../src/modules/scans/source.js';
 
 describe('finding source preview', () => {
   it('builds an immutable GitHub raw URL and rejects traversal', () => {
@@ -25,5 +25,11 @@ describe('finding source preview', () => {
       highlighted: true,
       content: 'const token=[REDACTED];',
     });
+  });
+
+  it('redacts submitted snippets on the server before storage', () => {
+    expect(sanitizeSubmittedPreview([{ number: 1, content: 'const apiKey = secret;', highlighted: true }])).toEqual([
+      { number: 1, content: '[contenu masqué : secret possible]', highlighted: true },
+    ]);
   });
 });

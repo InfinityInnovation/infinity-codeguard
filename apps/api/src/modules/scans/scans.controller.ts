@@ -6,6 +6,7 @@ import type {
   AuthenticatedUser,
   FindingSource,
   FindingSummary,
+  ScanDelta,
   ScanSummary,
 } from '@codeguard/contracts';
 import { CurrentUser } from '../../common/current-user.decorator';
@@ -51,6 +52,7 @@ export class ScansController {
       projectId,
       input.repositoryId,
       input.profile,
+      input.branch,
       user.id,
       correlationId(request),
     );
@@ -68,6 +70,20 @@ export class ScansController {
     const scanId = identifierSchema.parse(rawScanId);
     await this.organizations.assertMembership(user.id, organizationId);
     return this.scans.findings(organizationId, projectId, scanId);
+  }
+
+  @Get(':scanId/delta')
+  async delta(
+    @Param('organizationId') rawOrganizationId: string,
+    @Param('projectId') rawProjectId: string,
+    @Param('scanId') rawScanId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<ScanDelta> {
+    const organizationId = identifierSchema.parse(rawOrganizationId);
+    const projectId = identifierSchema.parse(rawProjectId);
+    const scanId = identifierSchema.parse(rawScanId);
+    await this.organizations.assertMembership(user.id, organizationId);
+    return this.scans.delta(organizationId, projectId, scanId);
   }
 
   @Get(':scanId/findings/:findingId/source')

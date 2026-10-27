@@ -1,3 +1,4 @@
+
 # Typescript snippets
 
 - `np` - nextPage
@@ -94,9 +95,9 @@ export default FileName
 ```typescript
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   return {
-    props: {},
-  };
-};
+    props: {}
+  }
+}
 ```
 
 ## `nsp` - nextStaticProps
@@ -105,8 +106,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 export const getStaticProps: GetStaticProps = async (ctx) => {
   return {
     props: {},
-  };
-};
+  }
+}
 ```
 
 ## `nspth` - nextStaticPaths
@@ -116,16 +117,18 @@ export const getStaticPaths: GetStaticPaths = async () => {
   return {
     paths: [],
     fallback: false,
-  };
-};
+  }
+}
 ```
 
 ## `nip` - nextInitialProps
 
 ```typescript
 FileName.getInitialProps = async (ctx) => {
-  return {};
-};
+  return {
+    
+  }
+}
 ```
 
 ## `nimg` - nextImage
@@ -174,22 +177,26 @@ export default MyDocument
 ## `napi` - nextApi
 
 ```typescript
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from 'next'
 
 interface Data {}
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {}
+export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+  
+}
 ```
 
 ## `nmid` - nextMiddleware
 
 ```typescript
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {}
+export async function middleware(request: NextRequest) {
+  
+}
 
 export const config = {
   matcher: '/about/:path*',
-};
+}
 ```

@@ -8,7 +8,7 @@ const scan: ScanSummary = {
   projectId: '33333333-3333-4333-8333-333333333333',
   repositoryId: '44444444-4444-4444-8444-444444444444',
   repositoryName: 'service-api',
-  status: 'SUCCEEDED', scanner: 'semgrep', commitSha: 'a'.repeat(40), errorMessage: null,
+  status: 'SUCCEEDED', scanner: 'semgrep', profile: 'COMPREHENSIVE', branch: 'main', commitSha: 'a'.repeat(40), errorMessage: null,
   findingCount: 1, criticalCount: 0, highCount: 1, mediumCount: 0, lowCount: 0,
   infoCount: 0, qualityGate: 'FAILED', queuedAt: new Date().toISOString(),
   startedAt: new Date().toISOString(), completedAt: new Date().toISOString(),

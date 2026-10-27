@@ -11,12 +11,14 @@ import { database } from '@codeguard/database';
 import type {
   FindingSource,
   FindingSummary,
+  ScanDelta,
   ScanSummary,
 } from '@codeguard/contracts';
 import type { z } from 'zod';
 import { updateFindingStatusSchema } from '@codeguard/contracts';
-import { loadFindingSource } from './source';
+import { loadFindingSource, sanitizeSubmittedPreview } from './source';
 import { buildJsonReport, buildSarifReport } from './report';
+import { classifyScanFindings } from './scan-delta';
 
 const SCAN_QUEUE = 'scan-orchestration';
 
@@ -47,17 +49,71 @@ export class ScansService implements OnApplicationShutdown {
     return scans.map(toSummary);
   }
 
+  async delta(organizationId: string, projectId: string, scanId: string): Promise<ScanDelta> {
+    const scan = await database.scan.findFirst({
+      where: { id: scanId, organizationId, projectId, status: 'SUCCEEDED' },
+      select: { id: true, repositoryId: true, branch: true, queuedAt: true },
+    });
+    if (!scan) throw new NotFoundException('Completed scan not found');
+    const previous = await database.scan.findFirst({
+      where: {
+        organizationId,
+        projectId,
+        repositoryId: scan.repositoryId,
+        branch: scan.branch,
+        status: 'SUCCEEDED',
+        queuedAt: { lt: scan.queuedAt },
+      },
+      select: { id: true, queuedAt: true },
+      orderBy: { queuedAt: 'desc' },
+    });
+    const currentFindings = await database.finding.findMany({
+      where: { organizationId, projectId, scanId },
+      select: { fingerprint: true },
+    });
+    if (!previous) return classifyScanFindings(scanId, null, currentFindings.map((item) => item.fingerprint), [], []);
+    const previousFindings = await database.finding.findMany({
+      where: { organizationId, projectId, scanId: previous.id },
+      select: { fingerprint: true },
+    });
+    const previousSet = new Set(previousFindings.map((item) => item.fingerprint));
+    const candidates = [...new Set(currentFindings.map((item) => item.fingerprint))].filter((fingerprint) => !previousSet.has(fingerprint));
+    const historical = candidates.length ? await database.finding.findMany({
+      where: {
+        organizationId,
+        projectId,
+        fingerprint: { in: candidates },
+        scan: {
+          repositoryId: scan.repositoryId,
+          branch: scan.branch,
+          status: 'SUCCEEDED',
+          queuedAt: { lt: previous.queuedAt },
+        },
+      },
+      select: { fingerprint: true },
+      distinct: ['fingerprint'],
+    }) : [];
+    return classifyScanFindings(
+      scanId,
+      previous.id,
+      currentFindings.map((item) => item.fingerprint),
+      previousFindings.map((item) => item.fingerprint),
+      historical.map((item) => item.fingerprint),
+    );
+  }
+
   async create(
     organizationId: string,
     projectId: string,
     repositoryId: string,
-    profile: 'STANDARD' | 'SECRETS' | 'OWASP_TOP_TEN' | 'INFRASTRUCTURE_AS_CODE',
+    profile: 'COMPREHENSIVE' | 'STANDARD' | 'SECRETS' | 'OWASP_TOP_TEN' | 'INFRASTRUCTURE_AS_CODE',
+    branch: string | undefined,
     actorId: string,
     requestCorrelationId: string,
   ): Promise<ScanSummary> {
     const repository = await database.repository.findFirst({
       where: { id: repositoryId, projectId, organizationId },
-      select: { id: true, name: true },
+      select: { id: true, name: true, defaultBranch: true },
     });
     if (!repository) throw new NotFoundException('Repository not found');
     const activeScan = await database.scan.findFirst({
@@ -67,7 +123,7 @@ export class ScansService implements OnApplicationShutdown {
     if (activeScan) throw new ConflictException('An analysis is already running for this repository');
     const scan = await database.$transaction(async (tx) => {
       const created = await tx.scan.create({
-        data: { organizationId, projectId, repositoryId, profile },
+        data: { organizationId, projectId, repositoryId, profile, branch: branch ?? repository.defaultBranch },
       });
       await tx.auditEvent.create({
         data: {
@@ -77,7 +133,7 @@ export class ScansService implements OnApplicationShutdown {
           targetType: 'Scan',
           targetId: created.id,
           correlationId: requestCorrelationId,
-          metadata: { projectId, repositoryId, scanner: 'semgrep', profile },
+          metadata: { projectId, repositoryId, scanner: 'semgrep', profile, branch: branch ?? repository.defaultBranch },
         },
       });
       return created;
@@ -188,6 +244,15 @@ export class ScansService implements OnApplicationShutdown {
       include: { scan: { include: { repository: true } } },
     });
     if (!finding || !finding.scan.commitSha) throw new NotFoundException('Finding source not found');
+    const storedLines = sanitizeSubmittedPreview(finding.sourcePreview);
+    if (storedLines?.length) {
+      return {
+        filePath: finding.filePath,
+        commitSha: finding.scan.commitSha,
+        sourceUrl: `codeguard-local://scan/${scanId}`,
+        lines: storedLines,
+      };
+    }
     return loadFindingSource({
       remoteUrl: finding.scan.repository.remoteUrl,
       commitSha: finding.scan.commitSha,
@@ -205,7 +270,8 @@ function toSummary(scan: {
   repositoryId: string;
   status: 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
   scanner: string;
-  profile: 'STANDARD' | 'SECRETS' | 'OWASP_TOP_TEN' | 'INFRASTRUCTURE_AS_CODE';
+  profile: 'COMPREHENSIVE' | 'STANDARD' | 'SECRETS' | 'OWASP_TOP_TEN' | 'INFRASTRUCTURE_AS_CODE';
+  branch: string;
   commitSha: string | null;
   errorMessage: string | null;
   findingCount: number;

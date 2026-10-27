@@ -1,0 +1,228 @@
+@media (max-width: 650px) {
+  .sq-page {
+    width: calc(100% - 24px);
+  }
+  .sq-user button,
+  .sq-navigation {
+    display: none;
+  }
+}
+
+/* Application shell and navigation. */
+.sq-shell .cg-sidebar {
+  position: fixed;
+  z-index: 30;
+  inset: 0 auto 0 0;
+  display: flex;
+  width: 232px;
+  flex-direction: column;
+  border-right: 1px solid #26384b;
+  padding: 0;
+  background: #0a1726;
+  color: #b9c7d6;
+}
+.sq-shell .cg-brand {
+  display: flex;
+  height: 64px;
+  flex: 0 0 64px;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #203246;
+  padding: 0 18px;
+}
+.sq-shell .cg-brand > span {
+  color: #3bd1c5;
+  font-size: 27px;
+  font-weight: 700;
+  line-height: 1;
+}
+.sq-shell .cg-brand strong {
+  color: #f1f5f9;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.sq-shell .cg-brand small {
+  margin-top: 2px;
+  color: #6f879f;
+  font-size: 8px;
+}
+.sq-shell .cg-sidebar nav {
+  display: block;
+  flex: 1;
+  padding: 16px 10px;
+}
+.sq-shell .cg-nav-heading {
+  display: block;
+  margin: 0;
+  padding: 0 10px 7px;
+  color: #546c84;
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.sq-shell .cg-nav-heading.security {
+  margin-top: 20px;
+}
+.sq-shell .cg-sidebar nav button {
+  display: grid;
+  width: 100%;
+  height: 38px;
+  min-height: 38px;
+  grid-template-columns: 20px 1fr;
+  align-items: center;
+  gap: 10px;
+  margin: 2px 0;
+  border: 0;
+  border-radius: 4px;
+  padding: 0 10px;
+  background: transparent;
+  color: #91a5b9;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+.sq-shell .cg-sidebar nav button svg {
+  display: block;
+  width: 17px;
+  height: 17px;
+  color: #718aa2;
+}
+.sq-shell .cg-sidebar nav button > span {
+  display: block;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+.sq-shell .cg-sidebar nav button:hover {
+  background: #10243a;
+  color: #e2eaf2;
+}
+.sq-shell .cg-sidebar nav button.active {
+  border-left: 0;
+  background: #12365a;
+  color: #f6f9fc;
+  box-shadow: inset 3px 0 #39a9f8;
+}
+.sq-shell .cg-sidebar nav button.active::before {
+  content: none;
+}
+.sq-shell .cg-sidebar nav button.active svg {
+  color: #55baff;
+}
+.sq-shell .cg-sidebar-footer {
+  display: grid;
+  min-height: 62px;
+  grid-template-columns: 30px 1fr;
+  align-items: center;
+  gap: 9px;
+  border-top: 1px solid #203246;
+  padding: 12px 16px;
+}
+.sq-shell .cg-sidebar-footer > span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid #35516d;
+  border-radius: 50%;
+  background: #14283d;
+  color: #b9d7ed;
+  font-size: 9px;
+  font-weight: 700;
+}
+.sq-shell .cg-sidebar-footer div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.sq-shell .cg-sidebar-footer strong {
+  overflow: hidden;
+  color: #dce6ef;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sq-shell .cg-sidebar-footer small {
+  color: #607b94;
+  font-size: 8px;
+}
+.sq-shell .sq-topbar {
+  left: 232px;
+  height: 56px;
+  min-height: 56px;
+  border-bottom-color: #26384b;
+  background: #0c1a2a;
+}
+.sq-shell .sq-page {
+  width: calc(100% - 232px);
+  max-width: none;
+  margin-left: 232px;
+  padding: 78px 24px 40px;
+  background: #0b1828;
+}
+.sq-shell .cg-page-heading {
+  margin-bottom: 18px;
+}
+.sq-shell .cg-page-heading h1 {
+  font-size: 21px;
+  font-weight: 650;
+}
+.sq-shell .cg-overview > div,
+.sq-shell .cg-panel,
+.sq-shell .cg-dashboard-summary,
+.sq-shell .cg-analysis-panel,
+.sq-shell .cg-vulnerabilities-panel {
+  border-color: #2a3d52;
+  border-radius: 4px;
+  background: #101f31;
+  box-shadow: none;
+}
+.sq-shell .cg-overview > div {
+  background: #101f31;
+}
+.sq-shell .cg-overview i {
+  border: 1px solid #294766;
+  border-radius: 4px;
+  background: #132d48;
+}
+@media (max-width: 760px) {
+  .sq-shell .cg-sidebar {
+    width: 58px;
+  }
+  .sq-shell .cg-brand {
+    justify-content: center;
+    padding: 0;
+  }
+  .sq-shell .cg-brand div,
+  .sq-shell .cg-nav-heading,
+  .sq-shell .cg-sidebar-footer div {
+    display: none;
+  }
+  .sq-shell .cg-sidebar nav {
+    padding: 12px 8px;
+  }
+  .sq-shell .cg-sidebar nav button {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    padding: 0;
+    font-size: 0;
+  }
+  .sq-shell .cg-sidebar-footer {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    padding: 10px;
+  }
+  .sq-shell.cg-product-shell .sq-topbar {
+    left: 58px;
+  }
+  .sq-shell .sq-page {
+    width: calc(100% - 58px);
+  }
+  .sq-shell.cg-product-shell .sq-page {
+    margin-left: 58px;
+  }
+}

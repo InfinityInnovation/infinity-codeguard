@@ -30,12 +30,12 @@ pnpm build
 pnpm compose:config
 ```
 
-See [architecture](docs/architecture/overview.md), [security model](docs/security/threat-model.md), and [deployment](docs/deployment/docker-compose.md).
+See [architecture](docs/architecture/overview.md), [security model](docs/security/threat-model.md), [deployment](docs/deployment/docker-compose.md), and the [step-by-step scanner guide](docs/ci-scanner.md).
 
 ## Status
 
-Implemented: pnpm/Turborepo, bilingual Next.js authentication and governance dashboard, NestJS API, validated and revocable sessions, same-origin protection, audit events, tenant-scoped projects and repositories, BullMQ orchestration, isolated temporary Git checkouts, Semgrep CE execution, parsed findings, and Compose services. Private repository credentials, policies, MFA, SSO, reports, additional scanners, and AI features are not implemented.
+Implemented: pnpm/Turborepo, bilingual Next.js authentication and governance dashboard, NestJS API, validated and revocable sessions, same-origin protection, audit events, tenant-scoped projects and repositories, GitHub App installations for private repositories, BullMQ orchestration, isolated temporary Git checkouts, Semgrep CE execution with general, secrets, OWASP Top 10 and Infrastructure as Code profiles, parsed findings, SARIF/JSON reports, and Compose services. Policies, MFA, SSO, additional scanner engines, and AI features are not implemented.
 
-Only public HTTPS repositories hosted on GitHub, GitLab, Bitbucket, or Azure DevOps are accepted by the scan worker. Credentials are rejected, source checkouts are deleted after each job, and source snippets are not persisted.
+The CI scanner analyzes an existing local checkout, including private repositories, without asking CodeGuard to clone it. The legacy worker accepts HTTPS repositories on GitHub, GitLab, Bitbucket, and Azure DevOps; private GitHub repositories require a configured GitHub App installation. Credentials embedded in repository URLs are rejected, temporary checkouts are deleted after each job, and source snippets are not persisted.
 
 Licensed under Apache-2.0. Third-party components retain their own licenses.

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { assertSafeRepositoryUrl, parseSemgrepOutput } from './semgrep.js';
+import {
+  assertSafeRepositoryUrl,
+  configsForProfile,
+  normalizeCloneError,
+  parseSemgrepOutput,
+} from './semgrep.js';
 
 describe('Semgrep adapter', () => {
   it('parses findings without retaining source code', () => {
@@ -44,5 +49,21 @@ describe('Semgrep adapter', () => {
     expect(() => assertSafeRepositoryUrl('https://postgres/repo.git')).toThrow();
     expect(() => assertSafeRepositoryUrl('https://github.com:8443/org/repo.git')).toThrow();
     expect(() => assertSafeRepositoryUrl('http://github.com/org/repo.git')).toThrow();
+  });
+
+  it('maps every analysis profile to validated Semgrep registry configurations', () => {
+    expect(configsForProfile('COMPREHENSIVE')).toEqual([
+      'p/default', 'p/secrets', 'p/owasp-top-ten', 'p/terraform', 'p/dockerfile',
+    ]);
+    expect(configsForProfile('STANDARD')).toEqual(['p/default']);
+    expect(configsForProfile('SECRETS')).toEqual(['p/secrets']);
+    expect(configsForProfile('OWASP_TOP_TEN')).toEqual(['p/owasp-top-ten']);
+    expect(configsForProfile('INFRASTRUCTURE_AS_CODE')).toEqual(['p/terraform', 'p/dockerfile']);
+  });
+
+  it('returns a safe actionable message when a private repository cannot be cloned', () => {
+    const error = normalizeCloneError(new Error("fatal: could not read Username for 'https://github.com'"));
+    expect(error.message).toContain('Dépôt inaccessible');
+    expect(error.message).not.toContain('/tmp/');
   });
 });

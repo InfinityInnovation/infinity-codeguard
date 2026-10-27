@@ -1,8 +1,21 @@
 import { BadGatewayException, BadRequestException } from '@nestjs/common';
 import type { FindingSource } from '@codeguard/contracts';
+import { sourceLineSchema } from '@codeguard/contracts';
 
 const MAX_SOURCE_BYTES = 256_000;
 const SECRET_PATTERN = /(token|password|secret|api[_-]?key)\s*[:=]\s*[^\s,;]+/gi;
+
+export function sanitizeSubmittedPreview(value: unknown): FindingSource['lines'] | undefined {
+  if (value === undefined) return undefined;
+  const parsed = sourceLineSchema.array().max(11).safeParse(value);
+  if (!parsed.success) return undefined;
+  return parsed.data.map((line) => ({
+    ...line,
+    content: /secret|password|token|authorization|api[_-]?key|private[_-]?key|BEGIN .* PRIVATE KEY/iu.test(line.content)
+      ? '[contenu masqué : secret possible]'
+      : line.content.slice(0, 500),
+  }));
+}
 
 export function githubRawUrl(remoteUrl: string, commitSha: string, filePath: string): URL {
   const remote = new URL(remoteUrl);
